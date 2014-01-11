@@ -31,8 +31,11 @@ def shuffle(fname, params, frames):
    wav.setparams((nchannels, sampwidth, framerate, 0, comptype, compname))
 
    outFrames = []
-   repeatsPerClip = [1, 1, 1, 1]
-   secondsPerClip = [1, 1, 1, 1, 1, 1, 1, 1, .5, .5, .5, .5, 2, .1, .1, .1, .1, .1, .1, .1, .1, .1, .1, 1, 1, .5, .5, 1, 1, 1, 1, .5, .5, .5, .5, .5, .5, .5, .5, 2, 2, .25, .25, .25, .25, .25, .25, .25, .25]
+   realTimePosition = 0 
+   laterTimePosition = int(framerate * 30)
+   repeatsPerClip = [4, 1]
+#   secondsPerClip = [1, 1, 1, 1, 1, 1, 1, 1, .5, .5, .5, .5, 2, .1, .1, .1, .1, .1, .1, .1, .1, .1, .1, 1, 1, .5, .5, 1, 1, 1, 1, .5, .5, .5, .5, .5, .5, .5, .5, 2, 2, .25, .25, .25, .25, .25, .25, .25, .25]
+   secondsPerClip = [2.45, 3.5, .4, 2.85, 1.15, 6.0, 1.41, 2.25, 1.84, 2.86, .78, 2.26, 1.34, 3.19]
    for i in range(len(secondsPerClip)):
       print 'i = ' + str(i)
       repeats = repeatsPerClip[i % len(repeatsPerClip)]
@@ -41,7 +44,18 @@ def shuffle(fname, params, frames):
       print 'seconds = ' + str(seconds)
       length = (int) (framerate / repeats * seconds)
       print 'length = ' + str(length)
-      position = random.randint(0, nframes - length)
+
+      if i == 0:
+         position = realTimePosition
+      elif i % 2 == 0:
+         position = laterTimePosition
+      else:
+         position = realTimePosition
+#         position = random.randint(0, nframes - length)
+
+      realTimePosition += (int)(framerate * seconds) 
+      laterTimePosition += (int)(framerate * seconds) 
+
       print 'position = ' + str(position)
 
       temp = []
