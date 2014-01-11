@@ -37,15 +37,15 @@ def shuffle(fname, params, frames):
       print 'i = ' + str(i)
       repeats = repeatsPerClip[i % len(repeatsPerClip)]
       print 'repeats = ' + str(repeats)
-      seconds = secondsPerClip[i % len(secondsPerClip)]
+      seconds = nchannels * secondsPerClip[i % len(secondsPerClip)]
       print 'seconds = ' + str(seconds)
-      length = framerate / repeats
+      length = (int) (framerate / repeats * seconds)
       print 'length = ' + str(length)
       position = random.randint(0, nframes - length)
       print 'position = ' + str(position)
 
       temp = []
-      for i in range((int)(repeats * seconds + .5)):
+      for i in range(repeats):
          temp.append(frames[position:position+length])
 
       temp = list(itertools.chain.from_iterable(temp))
