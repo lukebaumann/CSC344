@@ -121,10 +121,10 @@ void AudioPluginAudioProcessorEditor::resized()
     infoLabel.setBounds (10, 4, 400, 25);
     gainSlider.setBounds (20, 60, 150, 40);
     delaySlider.setBounds (200, 60, 150, 40);
-    sineWaveButton.setBounds(10, 120, 20, 20);
-    squareWaveButton.setBounds(40, 120, 20, 20);
-    triangleWaveButton.setBounds(70, 120, 20, 20);
-    sawToothWaveButton.setBounds(100, 120, 20, 20);
+    sineWaveButton.setBounds(10, 120, 30, 20);
+    squareWaveButton.setBounds(60, 120, 30, 20);
+    triangleWaveButton.setBounds(110, 120, 30, 20);
+    sawToothWaveButton.setBounds(160, 120, 30, 20);
     
     const int keyboardHeight = 70;
     midiKeyboard.setBounds (4, getHeight() - keyboardHeight - 4, getWidth() - 8, keyboardHeight);

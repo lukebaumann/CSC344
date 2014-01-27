@@ -11,16 +11,22 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
-//
-////==============================================================================
+
+//==============================================================================
 ///** A sound wrapper class.. */
 //class WaveSound : public SynthesiserSound
 //{
 //public:
 //    WaveSound() {}
+//    
+//    bool appliesToNote (const int /*midiNoteNumber*/)           { return true; }
+//    bool appliesToChannel (const int /*midiChannel*/)           { return true; }
+//    
+//    virtual int getSoundIndex();
 //};
 
 //==============================================================================
+
 /** A demo synth sound that's just a sine wave.. */
 class SineWaveSound : public SynthesiserSound
 {
@@ -67,7 +73,8 @@ class WaveVoice  : public SynthesiserVoice
 public:
     WaveVoice()
     : angleDelta (0.0),
-    tailOff (0.0)
+    tailOff (0.0),
+    soundIndex(0)
     {}
     
     bool canPlaySound (SynthesiserSound* sound)
@@ -79,8 +86,28 @@ public:
     }
     
     void startNote (int midiNoteNumber, float velocity,
-                    SynthesiserSound* /*sound*/, int /*currentPitchWheelPosition*/)
+                    SynthesiserSound* sound, int /*currentPitchWheelPosition*/)
     {
+        if (dynamic_cast <const SineWaveSound*> (sound))
+        {
+            soundIndex = 0;
+        }
+        else if (dynamic_cast <const SquareWaveSound*> (sound))
+        {
+            soundIndex = 1;
+        }
+        else if (dynamic_cast <const TriangleWaveSound*> (sound))
+        {
+            soundIndex = 2;
+        }
+        else if (dynamic_cast <const SawToothWaveSound*> (sound))
+        {
+            soundIndex = 3;
+        }
+        else {
+            soundIndex = 4;
+        }
+        
         currentAngle = 0.0;
         level = velocity * 0.15;
         tailOff = 0.0;
@@ -123,17 +150,16 @@ public:
     
     void renderNextBlock (AudioSampleBuffer& outputBuffer, int startSample, int numSamples)
     {
-        if (getCurrentlyPlayingSound() == nullptr) {}
-        else if (typeid(getCurrentlyPlayingSound()) == typeid(SineWaveSound)) {
+        if (soundIndex == 0) {
             sineRenderNextBlock(outputBuffer, startSample, numSamples);
         }
-        else if (typeid(getCurrentlyPlayingSound()) == typeid(SquareWaveSound)) {
+        else if (soundIndex == 1) {
             squareRenderNextBlock(outputBuffer, startSample, numSamples);
         }
-        else if (typeid(getCurrentlyPlayingSound()) == typeid(TriangleWaveSound)) {
+        else if (soundIndex == 2) {
             triangleRenderNextBlock(outputBuffer, startSample, numSamples);
         }
-        else if (typeid(getCurrentlyPlayingSound()) == typeid(SawToothWaveSound)) {
+        else if (soundIndex == 3) {
             sawToothRenderNextBlock(outputBuffer, startSample, numSamples);
         }
         else {
@@ -323,6 +349,7 @@ public:
     
 private:
     double currentAngle, angleDelta, level, tailOff;
+    int soundIndex;
 };
 
 const float defaultGain = 1.0f;
@@ -360,13 +387,13 @@ SynthesiserSound* AudioPluginAudioProcessor::getSound() {
     if (waveType > -0.5 && waveType < 0.5) {
         return new SineWaveSound();
     }
-    else if (waveType > -0.5 && waveType < 0.5) {
+    else if (waveType > 0.5 && waveType < 1.5) {
         return new SquareWaveSound();
     }
-    else if (waveType > -0.5 && waveType < 0.5) {
+    else if (waveType > 1.5 && waveType < 2.5) {
         return new TriangleWaveSound();
     }
-    else if (waveType > -0.5 && waveType < 0.5) {
+    else if (waveType > 2.5 && waveType < 3.5) {
         return new SawToothWaveSound();
     }
     else {
@@ -544,6 +571,9 @@ void AudioPluginAudioProcessor::reset()
 
 void AudioPluginAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& midiMessages)
 {
+    synth.clearSounds();
+    synth.addSound(getSound());
+    
     const int numSamples = buffer.getNumSamples();
     int channel, dp = 0;
     
