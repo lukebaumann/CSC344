@@ -36,7 +36,7 @@ public:
     
 private:
     MidiKeyboardComponent midiKeyboard;
-    Label infoLabel, gainLabel, delayLabel, sineWaveLabel, squareWaveLabel, triangleWaveLabel, sawToothWaveLabel;
+    Label infoLabel, gainLabel, delayLabel;
     Slider gainSlider, delaySlider;//, waveTypeSlider;
     ToggleButton sineWaveButton, squareWaveButton, triangleWaveButton, sawToothWaveButton;
     ScopedPointer<ResizableCornerComponent> resizer;

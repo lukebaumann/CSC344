@@ -20,10 +20,6 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor
       infoLabel (String::empty),
       gainLabel ("", "Throughput level:"),
       delayLabel ("", "Delay:"),
-      sineWaveLabel ("", "Sine:"),
-      squareWaveLabel ("", "Square:"),
-      triangleWaveLabel("", "Triangle:"),
-      sawToothWaveLabel("", "Saw Tooth:"),
       gainSlider ("gain"),
       delaySlider ("delay"),
 //      waveTypeSlider("waveType")
@@ -54,37 +50,24 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor
     
     delayLabel.attachToComponent (&delaySlider, false);
     delayLabel.setFont (Font (11.0f));
-
-//    waveTypeLabel.attachToComponent(&waveTypeSlider, false);
-//    waveTypeLabel.setFont(Font (11.0f));
-    
-//    addAndMakeVisible(waveTypeGroup);
     
     // add some toggle buttons for the wave types..
     addAndMakeVisible (sineWaveButton);
     sineWaveButton.setToggleState(true, dontSendNotification);
     sineWaveButton.setRadioGroupId(1);
     sineWaveButton.addListener (this);
-    sineWaveLabel.attachToComponent (&sineWaveButton, false);
-    sineWaveLabel.setFont (Font (11.0f));
 
     addAndMakeVisible (squareWaveButton);
     squareWaveButton.setRadioGroupId(1);
     squareWaveButton.addListener (this);
-    squareWaveLabel.attachToComponent (&squareWaveButton, false);
-    squareWaveLabel.setFont (Font (11.0f));
 
     addAndMakeVisible (triangleWaveButton);
     triangleWaveButton.setRadioGroupId(1);
     triangleWaveButton.addListener (this);
-    triangleWaveLabel.attachToComponent (&triangleWaveButton, false);
-    triangleWaveLabel.setFont (Font (11.0f));
 
     addAndMakeVisible (sawToothWaveButton);
     sawToothWaveButton.setRadioGroupId(1);
     sawToothWaveButton.addListener (this);
-    sawToothWaveLabel.attachToComponent (&sawToothWaveButton, false);
-    sawToothWaveLabel.setFont (Font (11.0f));
     
     // add the midi keyboard component..
     addAndMakeVisible (midiKeyboard);
@@ -121,10 +104,10 @@ void AudioPluginAudioProcessorEditor::resized()
     infoLabel.setBounds (10, 4, 400, 25);
     gainSlider.setBounds (20, 60, 150, 40);
     delaySlider.setBounds (200, 60, 150, 40);
-    sineWaveButton.setBounds(10, 120, 30, 20);
-    squareWaveButton.setBounds(60, 120, 30, 20);
-    triangleWaveButton.setBounds(110, 120, 30, 20);
-    sawToothWaveButton.setBounds(160, 120, 30, 20);
+    sineWaveButton.setBounds(0, 120, 100, 20);
+    squareWaveButton.setBounds(100, 120, 100, 20);
+    triangleWaveButton.setBounds(200, 120, 100, 20);
+    sawToothWaveButton.setBounds(300, 120, 100, 20);
     
     const int keyboardHeight = 70;
     midiKeyboard.setBounds (4, getHeight() - keyboardHeight - 4, getWidth() - 8, keyboardHeight);
