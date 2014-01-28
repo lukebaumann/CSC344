@@ -85,6 +85,7 @@ public:
         dynamic_cast <SawToothWaveSound*> (sound) != 0;
     }
     
+    // Find out what type of Sound is being played and set the soundIndex so we can know the sound later
     void startNote (int midiNoteNumber, float velocity,
                     SynthesiserSound* sound, int /*currentPitchWheelPosition*/)
     {
@@ -147,41 +148,43 @@ public:
     {
         // not interested in controllers in this case.
     }
-    
+
     void renderNextBlock (AudioSampleBuffer& outputBuffer, int startSample, int numSamples)
     {
+        double (*currentSampleBase)(double currentAngle);
+        
         if (soundIndex == 0) {
-            sineRenderNextBlock(outputBuffer, startSample, numSamples);
+            currentSampleBase = sineCurrentSampleBase;
         }
         else if (soundIndex == 1) {
-            squareRenderNextBlock(outputBuffer, startSample, numSamples);
+            currentSampleBase = squareCurrentSampleBase;
         }
         else if (soundIndex == 2) {
-            triangleRenderNextBlock(outputBuffer, startSample, numSamples);
+            currentSampleBase = triangleCurrentSampleBase;
         }
         else if (soundIndex == 3) {
-            sawToothRenderNextBlock(outputBuffer, startSample, numSamples);
+            currentSampleBase = sawToothCurrentSampleBase;
         }
         else {
             assert(false);
         }
-    }
-    
-    void sineRenderNextBlock (AudioSampleBuffer& outputBuffer, int startSample, int numSamples)
-    {
+        
         if (angleDelta != 0.0)
         {
             if (tailOff > 0)
             {
                 while (--numSamples >= 0)
                 {
-                    double currentSampleTemp = sin (currentAngle);
-                    const float currentSample = (float) (currentSampleTemp * level * tailOff);
+                    const float currentSample = (float) (currentSampleBase(currentAngle) * level * tailOff);
                     
                     for (int i = outputBuffer.getNumChannels(); --i >= 0;)
                         *outputBuffer.getSampleData (i, startSample) += currentSample;
                     
-                    currentAngle = fmod(currentAngle + angleDelta, 2 * double_Pi);
+                    currentAngle = currentAngle + angleDelta;
+                    
+                    while (currentAngle > 2 * double_Pi) {
+                        currentAngle -= 2 * double_Pi;
+                    }
                     ++startSample;
                     
                     tailOff *= 0.99;
@@ -199,152 +202,36 @@ public:
             {
                 while (--numSamples >= 0)
                 {
-                    double currentSampleTemp = sin (currentAngle);
-                    const float currentSample = (float) (currentSampleTemp * level);
+                    const float currentSample = (float) (currentSampleBase(currentAngle) * level);
                     
                     for (int i = outputBuffer.getNumChannels(); --i >= 0;)
                         *outputBuffer.getSampleData (i, startSample) += currentSample;
                     
-                    currentAngle = fmod(currentAngle + angleDelta, 2 * double_Pi);
+                    currentAngle = currentAngle + angleDelta;
+                    
+                    while (currentAngle > 2 * double_Pi) {
+                        currentAngle -= 2 * double_Pi;
+                    }
                     ++startSample;
                 }
             }
         }
     }
     
-    void squareRenderNextBlock (AudioSampleBuffer& outputBuffer, int startSample, int numSamples)
-    {
-        if (angleDelta != 0.0)
-        {
-            if (tailOff > 0)
-            {
-                while (--numSamples >= 0)
-                {
-                    double currentSampleTemp = currentAngle < double_Pi ? 1.0 : -1.0;
-                    const float currentSample = (float) (currentSampleTemp * level * tailOff);
-                    
-                    for (int i = outputBuffer.getNumChannels(); --i >= 0;)
-                        *outputBuffer.getSampleData (i, startSample) += currentSample;
-                    
-                    currentAngle = fmod(currentAngle + angleDelta, 2 * double_Pi);
-                    ++startSample;
-                    
-                    tailOff *= 0.99;
-                    
-                    if (tailOff <= 0.005)
-                    {
-                        clearCurrentNote();
-                        
-                        angleDelta = 0.0;
-                        break;
-                    }
-                }
-            }
-            else
-            {
-                while (--numSamples >= 0)
-                {
-                    double currentSampleTemp = currentAngle < double_Pi ? 1.0 : -1.0;
-                    const float currentSample = (float) (currentSampleTemp * level);
-                    
-                    for (int i = outputBuffer.getNumChannels(); --i >= 0;)
-                        *outputBuffer.getSampleData (i, startSample) += currentSample;
-                    
-                    currentAngle = fmod(currentAngle + angleDelta, 2 * double_Pi);
-                    ++startSample;
-                }
-            }
-        }
+    static double sineCurrentSampleBase(double currentAngle) {
+        return sin (currentAngle);
     }
     
-    void triangleRenderNextBlock (AudioSampleBuffer& outputBuffer, int startSample, int numSamples)
-    {
-        if (angleDelta != 0.0)
-        {
-            if (tailOff > 0)
-            {
-                while (--numSamples >= 0)
-                {
-                    double currentSampleTemp = currentAngle > double_Pi ? 1 - (2 * currentAngle) / double_Pi : (2 * currentAngle - 2 * double_Pi) / double_Pi - 1;
-                    const float currentSample = (float) (currentSampleTemp * level * tailOff);
-                    
-                    for (int i = outputBuffer.getNumChannels(); --i >= 0;)
-                        *outputBuffer.getSampleData (i, startSample) += currentSample;
-                    
-                    currentAngle = fmod(currentAngle + angleDelta, 2 * double_Pi);
-                    ++startSample;
-                    
-                    tailOff *= 0.99;
-                    
-                    if (tailOff <= 0.005)
-                    {
-                        clearCurrentNote();
-                        
-                        angleDelta = 0.0;
-                        break;
-                    }
-                }
-            }
-            else
-            {
-                while (--numSamples >= 0)
-                {
-                    double currentSampleTemp = currentAngle > double_Pi ? 1 - (2 * currentAngle) / double_Pi : (2 * currentAngle - 2 * double_Pi) / double_Pi - 1;
-                    const float currentSample = (float) (currentSampleTemp * level);
-                    
-                    for (int i = outputBuffer.getNumChannels(); --i >= 0;)
-                        *outputBuffer.getSampleData (i, startSample) += currentSample;
-                    
-                    currentAngle = fmod(currentAngle + angleDelta, 2 * double_Pi);
-                    ++startSample;
-                }
-            }
-        }
+    static double squareCurrentSampleBase(double currentAngle) {
+        return currentAngle < double_Pi ? 1.0 : -1.0;
+    }
+
+    static double triangleCurrentSampleBase(double currentAngle) {
+        return currentAngle > double_Pi ? 1 - (2 * currentAngle) / double_Pi : (2 * currentAngle - 2 * double_Pi) / double_Pi - 1;
     }
     
-    void sawToothRenderNextBlock (AudioSampleBuffer& outputBuffer, int startSample, int numSamples)
-    {
-        if (angleDelta != 0.0)
-        {
-            if (tailOff > 0)
-            {
-                while (--numSamples >= 0)
-                {
-                    double currentSampleTemp = currentAngle / double_Pi / 2;
-                    const float currentSample = (float) (currentSampleTemp * level * tailOff);
-                    
-                    for (int i = outputBuffer.getNumChannels(); --i >= 0;)
-                        *outputBuffer.getSampleData (i, startSample) += currentSample;
-                    
-                    currentAngle = fmod(currentAngle + angleDelta, 2 * double_Pi);
-                    ++startSample;
-                    
-                    tailOff *= 0.99;
-                    
-                    if (tailOff <= 0.005)
-                    {
-                        clearCurrentNote();
-                        
-                        angleDelta = 0.0;
-                        break;
-                    }
-                }
-            }
-            else
-            {
-                while (--numSamples >= 0)
-                {
-                    double currentSampleTemp = currentAngle / double_Pi / 2;
-                    const float currentSample = (float) (currentSampleTemp * level);
-                    
-                    for (int i = outputBuffer.getNumChannels(); --i >= 0;)
-                        *outputBuffer.getSampleData (i, startSample) += currentSample;
-                    
-                    currentAngle = fmod(currentAngle + angleDelta, 2 * double_Pi);
-                    ++startSample;
-                }
-            }
-        }
+    static double sawToothCurrentSampleBase(double currentAngle) {
+        return currentAngle / double_Pi / 2;
     }
     
 private:

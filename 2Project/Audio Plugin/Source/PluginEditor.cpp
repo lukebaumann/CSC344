@@ -131,7 +131,23 @@ void AudioPluginAudioProcessorEditor::timerCallback()
     
     gainSlider.setValue (ourProcessor->gain, dontSendNotification);
     delaySlider.setValue (ourProcessor->delay, dontSendNotification);
-//    waveTypeSlider.setValue (ourProcessor->waveType, dontSendNotification);
+    float waveType = ourProcessor->waveType;
+    
+    if (waveType > -0.5 && waveType < 0.5) {
+        sineWaveButton.setToggleState(true, dontSendNotification);
+    }
+    else if (waveType > 0.5 && waveType < 1.5) {
+        squareWaveButton.setToggleState(true, dontSendNotification);
+    }
+    else if (waveType > 1.5 && waveType < 2.5) {
+        triangleWaveButton.setToggleState(true, dontSendNotification);
+    }
+    else if (waveType > 2.5 && waveType < 3.5) {
+        sawToothWaveButton.setToggleState(true, dontSendNotification);
+    }
+    else {
+        sineWaveButton.setToggleState(true, dontSendNotification);
+    }
 }
 
 // This is our Slider::Listener callback, when the user drags a slider.
@@ -150,7 +166,7 @@ void AudioPluginAudioProcessorEditor::sliderValueChanged (Slider* slider)
         getProcessor()->setParameterNotifyingHost (AudioPluginAudioProcessor::delayParam,
                                                    (float) delaySlider.getValue());
     }
-//    else if (slider == &waveTypeSlider)
+//    else if (slider == &waveType)
 //    {
 //        getProcessor()->setParameterNotifyingHost (AudioPluginAudioProcessor::waveTypeParam,
 //                                                   (float) waveTypeSlider.getValue());
