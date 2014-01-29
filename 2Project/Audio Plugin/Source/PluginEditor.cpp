@@ -22,7 +22,6 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor
       delayLabel ("", "Delay:"),
       gainSlider ("gain"),
       delaySlider ("delay"),
-//      waveTypeSlider("waveType")
       sineWaveButton ("Sine Wave"),
       squareWaveButton ("Square Wave"),
       triangleWaveButton ("Triangle Wave"),
@@ -41,12 +40,7 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor
     delaySlider.setSliderStyle (Slider::Rotary);
     delaySlider.addListener (this);
     delaySlider.setRange (0.0, 1.0, 0.01);
-    
-//    addAndMakeVisible(waveTypeSlider);
-//    waveTypeSlider.setSliderStyle(Slider::Rotary);
-//    waveTypeSlider.addListener(this);
-//    waveTypeSlider.setRange(0.0, 3.0, .1);
-    
+
     // add some labels for the sliders..
     gainLabel.attachToComponent (&gainSlider, false);
     gainLabel.setFont (Font (11.0f));
@@ -123,9 +117,9 @@ void AudioPluginAudioProcessorEditor::resized()
     squareWaveButton.setBounds(100, 120, 100, 20);
     triangleWaveButton.setBounds(200, 120, 100, 20);
     sawToothWaveButton.setBounds(300, 120, 100, 20);
-    FMWaveButton.setBounds(50, 170, 100, 20);
-    AMWaveButton.setBounds(150, 170, 100, 20);
-    FMixWaveButton.setBounds(250, 170, 100, 20);
+    FMWaveButton.setBounds(50, 150, 100, 20);
+    AMWaveButton.setBounds(150, 150, 100, 20);
+    FMixWaveButton.setBounds(250, 150, 100, 20);
     
     const int keyboardHeight = 70;
     midiKeyboard.setBounds (4, getHeight() - keyboardHeight - 4, getWidth() - 8, keyboardHeight);

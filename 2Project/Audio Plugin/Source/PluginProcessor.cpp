@@ -267,7 +267,7 @@ public:
     }
     
     static double sineCurrentSampleBase(double currentAngle) {
-        return sin (currentAngle);
+        return sin(currentAngle);
     }
     
     static double squareCurrentSampleBase(double currentAngle) {
@@ -275,7 +275,8 @@ public:
     }
 
     static double triangleCurrentSampleBase(double currentAngle) {
-        return fmod(currentAngle, 2 * double_Pi) > double_Pi ? 1 - (2 * currentAngle) / double_Pi : (2 * currentAngle - 2 * double_Pi) / double_Pi - 1;
+        double tempAngle = fmod(currentAngle, 2 * double_Pi);
+        return tempAngle > double_Pi ? 1 - (2 * tempAngle) / double_Pi : (2 * tempAngle - 2 * double_Pi) / double_Pi - 1;
     }
     
     static double sawToothCurrentSampleBase(double currentAngle) {
