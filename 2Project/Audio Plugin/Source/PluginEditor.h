@@ -38,7 +38,8 @@ private:
     MidiKeyboardComponent midiKeyboard;
     Label infoLabel, gainLabel, delayLabel;
     Slider gainSlider, delaySlider;//, waveTypeSlider;
-    ToggleButton sineWaveButton, squareWaveButton, triangleWaveButton, sawToothWaveButton;
+    ToggleButton sineWaveButton, squareWaveButton, triangleWaveButton, sawToothWaveButton,
+        FMWaveButton, AMWaveButton, FMixWaveButton;
     ScopedPointer<ResizableCornerComponent> resizer;
     ComponentBoundsConstrainer resizeLimits;
     

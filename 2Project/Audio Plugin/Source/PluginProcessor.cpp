@@ -27,7 +27,7 @@
 
 //==============================================================================
 
-/** A demo synth sound that's just a sine wave.. */
+/** A demo synth sound that's a sine wave.. */
 class SineWaveSound : public SynthesiserSound
 {
 public:
@@ -37,7 +37,7 @@ public:
 };
 
 //==============================================================================
-/** A demo synth sound that's just a square wave.. */
+/** A demo synth sound that's a square wave.. */
 class SquareWaveSound : public SynthesiserSound
 {
 public:
@@ -47,7 +47,7 @@ public:
 };
 
 //==============================================================================
-/** A demo synth sound that's just a triangle wave.. */
+/** A demo synth sound that's a triangle wave.. */
 class TriangleWaveSound : public SynthesiserSound
 {
 public:
@@ -57,11 +57,41 @@ public:
 };
 
 //==============================================================================
-/** A demo synth sound that's just a saw tooth wave.. */
+/** A demo synth sound that's a saw tooth wave.. */
 class SawToothWaveSound : public SynthesiserSound
 {
 public:
     SawToothWaveSound() {}
+    bool appliesToNote (const int /*midiNoteNumber*/)           { return true; }
+    bool appliesToChannel (const int /*midiChannel*/)           { return true; }
+};
+
+//==============================================================================
+/** A demo synth sound that's a frequency modulated sine wave.. */
+class FMWaveSound : public SynthesiserSound
+{
+public:
+    FMWaveSound() {}
+    bool appliesToNote (const int /*midiNoteNumber*/)           { return true; }
+    bool appliesToChannel (const int /*midiChannel*/)           { return true; }
+};
+
+//==============================================================================
+/** A demo synth sound that's a amplitude modulated sine wave.. */
+class AMWaveSound : public SynthesiserSound
+{
+public:
+    AMWaveSound() {}
+    bool appliesToNote (const int /*midiNoteNumber*/)           { return true; }
+    bool appliesToChannel (const int /*midiChannel*/)           { return true; }
+};
+
+//==============================================================================
+/** A demo synth sound that's a frequency mixing sine wave.. */
+class FMixWaveSound : public SynthesiserSound
+{
+public:
+    FMixWaveSound() {}
     bool appliesToNote (const int /*midiNoteNumber*/)           { return true; }
     bool appliesToChannel (const int /*midiChannel*/)           { return true; }
 };
@@ -82,7 +112,10 @@ public:
         return dynamic_cast <SineWaveSound*> (sound) != 0 ||
         dynamic_cast <SquareWaveSound*> (sound) != 0 ||
         dynamic_cast <TriangleWaveSound*> (sound) != 0 ||
-        dynamic_cast <SawToothWaveSound*> (sound) != 0;
+        dynamic_cast <SawToothWaveSound*> (sound) != 0 ||
+        dynamic_cast <FMWaveSound*> (sound) != 0 ||
+        dynamic_cast <AMWaveSound*> (sound) != 0 ||
+        dynamic_cast <FMixWaveSound*> (sound) != 0;
     }
     
     // Find out what type of Sound is being played and set the soundIndex so we can know the sound later
@@ -105,8 +138,20 @@ public:
         {
             soundIndex = 3;
         }
-        else {
+        else if (dynamic_cast <const FMWaveSound*> (sound))
+        {
             soundIndex = 4;
+        }
+        else if (dynamic_cast <const AMWaveSound*> (sound))
+        {
+            soundIndex = 5;
+        }
+        else if (dynamic_cast <const FMixWaveSound*> (sound))
+        {
+            soundIndex = 6;
+        }
+        else {
+            soundIndex = 7;
         }
         
         currentAngle = 0.0;
@@ -165,6 +210,15 @@ public:
         else if (soundIndex == 3) {
             currentSampleBase = sawToothCurrentSampleBase;
         }
+        else if (soundIndex == 4) {
+            currentSampleBase = FMCurrentSampleBase;
+        }
+        else if (soundIndex == 5) {
+            currentSampleBase = AMCurrentSampleBase;
+        }
+        else if (soundIndex == 6) {
+            currentSampleBase = FMixCurrentSampleBase;
+        }
         else {
             assert(false);
         }
@@ -181,10 +235,7 @@ public:
                         *outputBuffer.getSampleData (i, startSample) += currentSample;
                     
                     currentAngle = currentAngle + angleDelta;
-                    
-                    while (currentAngle > 2 * double_Pi) {
-                        currentAngle -= 2 * double_Pi;
-                    }
+
                     ++startSample;
                     
                     tailOff *= 0.99;
@@ -208,10 +259,7 @@ public:
                         *outputBuffer.getSampleData (i, startSample) += currentSample;
                     
                     currentAngle = currentAngle + angleDelta;
-                    
-                    while (currentAngle > 2 * double_Pi) {
-                        currentAngle -= 2 * double_Pi;
-                    }
+
                     ++startSample;
                 }
             }
@@ -223,15 +271,27 @@ public:
     }
     
     static double squareCurrentSampleBase(double currentAngle) {
-        return currentAngle < double_Pi ? 1.0 : -1.0;
+        return fmod(currentAngle, 2 * double_Pi) < double_Pi ? 1.0 : -1.0;
     }
 
     static double triangleCurrentSampleBase(double currentAngle) {
-        return currentAngle > double_Pi ? 1 - (2 * currentAngle) / double_Pi : (2 * currentAngle - 2 * double_Pi) / double_Pi - 1;
+        return fmod(currentAngle, 2 * double_Pi) > double_Pi ? 1 - (2 * currentAngle) / double_Pi : (2 * currentAngle - 2 * double_Pi) / double_Pi - 1;
     }
     
     static double sawToothCurrentSampleBase(double currentAngle) {
-        return currentAngle / double_Pi / 2;
+        return fmod(currentAngle, 2 * double_Pi) / double_Pi / 2;
+    }
+    
+    static double FMCurrentSampleBase(double currentAngle) {
+        return sin(sin(9 * currentAngle) + currentAngle);
+    }
+
+    static double AMCurrentSampleBase(double currentAngle) {
+        return sin(currentAngle) * (3 + sin(5 * currentAngle));
+    }
+    
+    static double FMixCurrentSampleBase(double currentAngle) {
+        return sin(currentAngle) * sin(7 * currentAngle);
     }
     
 private:
@@ -282,6 +342,15 @@ SynthesiserSound* AudioPluginAudioProcessor::getSound() {
     }
     else if (waveType > 2.5 && waveType < 3.5) {
         return new SawToothWaveSound();
+    }
+    else if (waveType > 3.5 && waveType < 4.5) {
+        return new FMWaveSound();
+    }
+    else if (waveType > 4.5 && waveType < 5.5) {
+        return new AMWaveSound();
+    }
+    else if (waveType > 5.5 && waveType < 6.5) {
+        return new FMixWaveSound();
     }
     else {
         return new SineWaveSound();

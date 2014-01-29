@@ -26,7 +26,10 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor
       sineWaveButton ("Sine Wave"),
       squareWaveButton ("Square Wave"),
       triangleWaveButton ("Triangle Wave"),
-      sawToothWaveButton ("Saw Tooth Wave")
+      sawToothWaveButton ("Saw Tooth Wave"),
+      FMWaveButton ("Frequency Modulation Wave"),
+      AMWaveButton ("Amplitude Modulation Wave"),
+      FMixWaveButton ("Frequency Mixing Wave")
 {
     // add some sliders..
     addAndMakeVisible (gainSlider);
@@ -69,6 +72,18 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor
     sawToothWaveButton.setRadioGroupId(1);
     sawToothWaveButton.addListener (this);
     
+    addAndMakeVisible (FMWaveButton);
+    FMWaveButton.setRadioGroupId(1);
+    FMWaveButton.addListener (this);
+    
+    addAndMakeVisible (AMWaveButton);
+    AMWaveButton.setRadioGroupId(1);
+    AMWaveButton.addListener (this);
+    
+    addAndMakeVisible (FMixWaveButton);
+    FMixWaveButton.setRadioGroupId(1);
+    FMixWaveButton.addListener (this);
+    
     // add the midi keyboard component..
     addAndMakeVisible (midiKeyboard);
     
@@ -108,6 +123,9 @@ void AudioPluginAudioProcessorEditor::resized()
     squareWaveButton.setBounds(100, 120, 100, 20);
     triangleWaveButton.setBounds(200, 120, 100, 20);
     sawToothWaveButton.setBounds(300, 120, 100, 20);
+    FMWaveButton.setBounds(50, 170, 100, 20);
+    AMWaveButton.setBounds(150, 170, 100, 20);
+    FMixWaveButton.setBounds(250, 170, 100, 20);
     
     const int keyboardHeight = 70;
     midiKeyboard.setBounds (4, getHeight() - keyboardHeight - 4, getWidth() - 8, keyboardHeight);
@@ -145,6 +163,15 @@ void AudioPluginAudioProcessorEditor::timerCallback()
     else if (waveType > 2.5 && waveType < 3.5) {
         sawToothWaveButton.setToggleState(true, dontSendNotification);
     }
+    else if (waveType > 3.5 && waveType < 4.5) {
+        FMWaveButton.setToggleState(true, dontSendNotification);
+    }
+    else if (waveType > 4.5 && waveType < 5.5) {
+        AMWaveButton.setToggleState(true, dontSendNotification);
+    }
+    else if (waveType > 5.5 && waveType < 6.5) {
+        FMixWaveButton.setToggleState(true, dontSendNotification);
+    }
     else {
         sineWaveButton.setToggleState(true, dontSendNotification);
     }
@@ -166,11 +193,6 @@ void AudioPluginAudioProcessorEditor::sliderValueChanged (Slider* slider)
         getProcessor()->setParameterNotifyingHost (AudioPluginAudioProcessor::delayParam,
                                                    (float) delaySlider.getValue());
     }
-//    else if (slider == &waveType)
-//    {
-//        getProcessor()->setParameterNotifyingHost (AudioPluginAudioProcessor::waveTypeParam,
-//                                                   (float) waveTypeSlider.getValue());
-//    }
 }
 
 // This is our Button::Listener callback, when the user drags a slider.
@@ -183,22 +205,30 @@ void AudioPluginAudioProcessorEditor::buttonClicked(Button* button)
         // that they've changed.
         getProcessor()->setParameterNotifyingHost (AudioPluginAudioProcessor::waveTypeParam, 0.0);
     }
-    
     else if (button == &squareWaveButton)
     {
         getProcessor()->setParameterNotifyingHost (AudioPluginAudioProcessor::waveTypeParam, 1.0);
     }
-    
     else if (button == &triangleWaveButton)
     {
         getProcessor()->setParameterNotifyingHost (AudioPluginAudioProcessor::waveTypeParam, 2.0);
     }
-    
     else if (button == &sawToothWaveButton)
     {
         getProcessor()->setParameterNotifyingHost (AudioPluginAudioProcessor::waveTypeParam, 3.0);
     }
-    
+    else if (button == &FMWaveButton)
+    {
+        getProcessor()->setParameterNotifyingHost (AudioPluginAudioProcessor::waveTypeParam, 4.0);
+    }
+    else if (button == &AMWaveButton)
+    {
+        getProcessor()->setParameterNotifyingHost (AudioPluginAudioProcessor::waveTypeParam, 5.0);
+    }
+    else if (button == &FMixWaveButton)
+    {
+        getProcessor()->setParameterNotifyingHost (AudioPluginAudioProcessor::waveTypeParam, 6.0);
+    }
     else
     {
         jassertfalse;
