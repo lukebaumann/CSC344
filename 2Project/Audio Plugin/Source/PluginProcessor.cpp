@@ -11,20 +11,6 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
-
-//==============================================================================
-///** A sound wrapper class.. */
-//class WaveSound : public SynthesiserSound
-//{
-//public:
-//    WaveSound() {}
-//    
-//    bool appliesToNote (const int /*midiNoteNumber*/)           { return true; }
-//    bool appliesToChannel (const int /*midiChannel*/)           { return true; }
-//    
-//    virtual int getSoundIndex();
-//};
-
 //==============================================================================
 
 /** A demo synth sound that's a sine wave.. */
@@ -276,7 +262,7 @@ public:
 
     static double triangleCurrentSampleBase(double currentAngle) {
         double tempAngle = fmod(currentAngle, 2 * double_Pi);
-        return tempAngle > double_Pi ? 1 - (2 * tempAngle) / double_Pi : (2 * tempAngle - 2 * double_Pi) / double_Pi - 1;
+        return tempAngle < double_Pi ? 1 - (2 * tempAngle) / double_Pi : (2 * tempAngle - 2 * double_Pi) / double_Pi - 1;
     }
     
     static double sawToothCurrentSampleBase(double currentAngle) {
