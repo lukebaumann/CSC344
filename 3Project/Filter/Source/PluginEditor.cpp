@@ -14,10 +14,82 @@
 
 //==============================================================================
 FilterAudioProcessorEditor::FilterAudioProcessorEditor (FilterAudioProcessor* ownerFilter)
-    : AudioProcessorEditor (ownerFilter)
+    : AudioProcessorEditor (ownerFilter),
+      infoLabel (String::empty),
+      gainLabel ("", "Throughput level:"),
+      delayLabel ("", "Delay:"),
+      gainSlider ("gain"),
+      delaySlider ("delay")/*,
+      sineWaveButton ("Sine Wave"),
+      squareWaveButton ("Square Wave"),
+      triangleWaveButton ("Triangle Wave"),
+      sawToothWaveButton ("Saw Tooth Wave"),
+      FMWaveButton ("Frequency Modulation Wave"),
+      AMWaveButton ("Amplitude Modulation Wave"),
+      FMixWaveButton ("Frequency Mixing Wave")*/
 {
-    // This is where our plugin's editor size is set.
-    setSize (400, 300);
+    // add some sliders..
+    addAndMakeVisible (gainSlider);
+    gainSlider.setSliderStyle (Slider::Rotary);
+    gainSlider.addListener (this);
+    gainSlider.setRange (0.0, 1.0, 0.01);
+    
+    addAndMakeVisible (delaySlider);
+    delaySlider.setSliderStyle (Slider::Rotary);
+    delaySlider.addListener (this);
+    delaySlider.setRange (0.0, 1.0, 0.01);
+    
+    // add some labels for the sliders..
+    gainLabel.attachToComponent (&gainSlider, false);
+    gainLabel.setFont (Font (11.0f));
+    
+    delayLabel.attachToComponent (&delaySlider, false);
+    delayLabel.setFont (Font (11.0f));
+    
+/*    // add some toggle buttons for the wave types..
+    addAndMakeVisible (sineWaveButton);
+    sineWaveButton.setToggleState(true, dontSendNotification);
+    sineWaveButton.setRadioGroupId(1);
+    sineWaveButton.addListener (this);
+    
+    addAndMakeVisible (squareWaveButton);
+    squareWaveButton.setRadioGroupId(1);
+    squareWaveButton.addListener (this);
+    
+    addAndMakeVisible (triangleWaveButton);
+    triangleWaveButton.setRadioGroupId(1);
+    triangleWaveButton.addListener (this);
+    
+    addAndMakeVisible (sawToothWaveButton);
+    sawToothWaveButton.setRadioGroupId(1);
+    sawToothWaveButton.addListener (this);
+    
+    addAndMakeVisible (FMWaveButton);
+    FMWaveButton.setRadioGroupId(1);
+    FMWaveButton.addListener (this);
+    
+    addAndMakeVisible (AMWaveButton);
+    AMWaveButton.setRadioGroupId(1);
+    AMWaveButton.addListener (this);
+    
+    addAndMakeVisible (FMixWaveButton);
+    FMixWaveButton.setRadioGroupId(1);
+    FMixWaveButton.addListener (this);
+*/
+    
+    // add a label that will display the current timecode and status..
+    addAndMakeVisible (infoLabel);
+    infoLabel.setColour (Label::textColourId, Colours::blue);
+    
+    // add the triangular resizer component for the bottom-right of the UI
+    addAndMakeVisible (resizer = new ResizableCornerComponent (this, &resizeLimits));
+    resizeLimits.setSizeLimits (150, 150, 800, 300);
+    
+    // set our component's initial size to be the last one that was stored in the filter's settings
+    setSize (ownerFilter->lastUIWidth,
+             ownerFilter->lastUIHeight);
+    
+    startTimer (50);
 }
 
 FilterAudioProcessorEditor::~FilterAudioProcessorEditor()
@@ -33,4 +105,119 @@ void FilterAudioProcessorEditor::paint (Graphics& g)
     g.drawFittedText ("Hello World!",
                       0, 0, getWidth(), getHeight(),
                       Justification::centred, 1);
+}
+
+void FilterAudioProcessorEditor::resized()
+{
+    infoLabel.setBounds (10, 4, 400, 25);
+    gainSlider.setBounds (20, 60, 150, 40);
+    delaySlider.setBounds (200, 60, 150, 40);
+/*    sineWaveButton.setBounds(0, 120, 100, 20);
+    squareWaveButton.setBounds(100, 120, 100, 20);
+    triangleWaveButton.setBounds(200, 120, 100, 20);
+    sawToothWaveButton.setBounds(300, 120, 100, 20);
+    FMWaveButton.setBounds(50, 150, 100, 20);
+    AMWaveButton.setBounds(150, 150, 100, 20);
+    FMixWaveButton.setBounds(250, 150, 100, 20);*/
+
+    resizer->setBounds (getWidth() - 16, getHeight() - 16, 16, 16);
+    
+    getProcessor()->lastUIWidth = getWidth();
+    getProcessor()->lastUIHeight = getHeight();
+}
+
+
+//==============================================================================
+// This timer periodically checks whether any of the filter's parameters have changed...
+void FilterAudioProcessorEditor::timerCallback()
+{
+    FilterAudioProcessor* ourProcessor = getProcessor();
+    
+    AudioPlayHead::CurrentPositionInfo newPos (ourProcessor->lastPosInfo);
+    
+    if (lastDisplayedPosition != newPos)
+        displayPositionInfo (newPos);
+    
+    gainSlider.setValue (ourProcessor->gain, dontSendNotification);
+    delaySlider.setValue (ourProcessor->delay, dontSendNotification);
+}
+
+
+// This is our Slider::Listener callback, when the user drags a slider.
+void FilterAudioProcessorEditor::sliderValueChanged (Slider* slider)
+{
+    if (slider == &gainSlider)
+    {
+        // It's vital to use setParameterNotifyingHost to change any parameters that are automatable
+        // by the host, rather than just modifying them directly, otherwise the host won't know
+        // that they've changed.
+        getProcessor()->setParameterNotifyingHost (FilterAudioProcessor::gainParam,
+                                                   (float) gainSlider.getValue());
+    }
+    else if (slider == &delaySlider)
+    {
+        getProcessor()->setParameterNotifyingHost (FilterAudioProcessor::delayParam,
+                                                   (float) delaySlider.getValue());
+    }
+}
+
+
+
+//==============================================================================
+// quick-and-dirty function to format a timecode string
+static const String timeToTimecodeString (const double seconds)
+{
+    const double absSecs = fabs (seconds);
+    
+    const int hours =  (int) (absSecs / (60.0 * 60.0));
+    const int mins  = ((int) (absSecs / 60.0)) % 60;
+    const int secs  = ((int) absSecs) % 60;
+    
+    String s (seconds < 0 ? "-" : "");
+    
+    s << String (hours).paddedLeft ('0', 2) << ":"
+    << String (mins) .paddedLeft ('0', 2) << ":"
+    << String (secs) .paddedLeft ('0', 2) << ":"
+    << String (roundToInt (absSecs * 1000) % 1000).paddedLeft ('0', 3);
+    
+    return s;
+}
+
+// quick-and-dirty function to format a bars/beats string
+static const String ppqToBarsBeatsString (double ppq, double /*lastBarPPQ*/, int numerator, int denominator)
+{
+    if (numerator == 0 || denominator == 0)
+        return "1|1|0";
+    
+    const int ppqPerBar = (numerator * 4 / denominator);
+    const double beats  = (fmod (ppq, ppqPerBar) / ppqPerBar) * numerator;
+    
+    const int bar    = ((int) ppq) / ppqPerBar + 1;
+    const int beat   = ((int) beats) + 1;
+    const int ticks  = ((int) (fmod (beats, 1.0) * 960.0 + 0.5));
+    
+    String s;
+    s << bar << '|' << beat << '|' << ticks;
+    return s;
+}
+
+// Updates the text in our position label.
+void FilterAudioProcessorEditor::displayPositionInfo (const AudioPlayHead::CurrentPositionInfo& pos)
+{
+    lastDisplayedPosition = pos;
+    String displayText;
+    displayText.preallocateBytes (128);
+    
+    displayText << String (pos.bpm, 2) << " bpm, "
+    << pos.timeSigNumerator << '/' << pos.timeSigDenominator
+    << "  -  " << timeToTimecodeString (pos.timeInSeconds)
+    << "  -  " << ppqToBarsBeatsString (pos.ppqPosition, pos.ppqPositionOfLastBarStart,
+                                        pos.timeSigNumerator, pos.timeSigDenominator);
+    
+    if (pos.isRecording)
+        displayText << "  (recording)";
+    else if (pos.isPlaying)
+        displayText << "  (playing)";
+    
+    infoLabel.setText (displayText, dontSendNotification);
 }

@@ -18,15 +18,40 @@
 //==============================================================================
 /**
 */
-class FilterAudioProcessorEditor  : public AudioProcessorEditor
+class FilterAudioProcessorEditor  : public AudioProcessorEditor,
+                                    public Slider::Listener,
+//                                   public Button::Listener,
+                                    public Timer
 {
 public:
     FilterAudioProcessorEditor (FilterAudioProcessor* ownerFilter);
     ~FilterAudioProcessorEditor();
 
+    
     //==============================================================================
-    // This is just a standard Juce paint method...
-    void paint (Graphics& g);
+    void timerCallback() override;
+    void paint (Graphics&) override;
+    void resized() override;
+    void sliderValueChanged (Slider*) override;
+//    void buttonClicked (Button*) override;
+    
+private:
+    Label infoLabel, gainLabel, delayLabel;
+    Slider gainSlider, delaySlider;
+/*    ToggleButton sineWaveButton, squareWaveButton, triangleWaveButton, sawToothWaveButton,
+    FMWaveButton, AMWaveButton, FMixWaveButton;
+*/
+ ScopedPointer<ResizableCornerComponent> resizer;
+    ComponentBoundsConstrainer resizeLimits;
+    
+    AudioPlayHead::CurrentPositionInfo lastDisplayedPosition;
+    
+    FilterAudioProcessor* getProcessor() const
+    {
+        return static_cast <FilterAudioProcessor*> (getAudioProcessor());
+    }
+    
+    void displayPositionInfo (const AudioPlayHead::CurrentPositionInfo& pos);
 };
 
 
