@@ -194,12 +194,14 @@ void FilterAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& 
         float* channelData = buffer.getSampleData (channel);
         float* delayData = delayBuffer.getSampleData (jmin (channel, delayBuffer.getNumChannels() - 1));
         dp = delayPosition;
-        
+
         for (int i = 0; i < numSamples; ++i)
         {
             const float in = channelData[i];
             channelData[i] += delayData[dp];
-            delayData[dp] = (delayData[dp] + in) * delay;
+//            delayData[dp] = (delayData[dp] + in) * delay;
+            delayData[dp] = (in) * delay;
+
             if (++dp >= delayBuffer.getNumSamples())
                 dp = 0;
         }

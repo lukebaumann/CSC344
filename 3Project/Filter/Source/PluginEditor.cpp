@@ -99,12 +99,9 @@ FilterAudioProcessorEditor::~FilterAudioProcessorEditor()
 //==============================================================================
 void FilterAudioProcessorEditor::paint (Graphics& g)
 {
-    g.fillAll (Colours::white);
-    g.setColour (Colours::black);
-    g.setFont (15.0f);
-    g.drawFittedText ("Hello World!",
-                      0, 0, getWidth(), getHeight(),
-                      Justification::centred, 1);
+    g.setGradientFill (ColourGradient (Colours::white, 0, 0,
+                                       Colours::grey, 0, (float) getHeight(), false));
+    g.fillAll();
 }
 
 void FilterAudioProcessorEditor::resized()
