@@ -13,7 +13,10 @@
 
 const float defaultGain = 1.0f;
 const float defaultDelay = 0.0f;
-const bool defaultDelayFeedBackFlag = false;
+const float defaultLowPassFrequency = 440.0f;
+const bool defaultDelayEnabledFlag = false;
+const bool defaultDelayFeedBackEnabledFlag = false;
+const bool defaultLowPassFilterEnabledFlag = false;
 
 //==============================================================================
 FilterAudioProcessor::FilterAudioProcessor()
@@ -23,7 +26,10 @@ FilterAudioProcessor::FilterAudioProcessor()
     // Set up some default values..
     gain = defaultGain;
     delay = defaultDelay;
-    delayFeedBackFlag = defaultDelayFeedBackFlag;
+    lowPassFrequency = defaultLowPassFrequency;
+    delayEnabledFlag = defaultDelayEnabledFlag;
+    delayFeedBackEnabledFlag = defaultDelayFeedBackEnabledFlag;
+    lowPassFilterEnabledFlag = defaultLowPassFilterEnabledFlag;
     
     lastUIWidth = 400;
     lastUIHeight = 270;
@@ -57,7 +63,11 @@ float FilterAudioProcessor::getParameter (int index)
     {
         case gainParam:                 return gain;
         case delayParam:                return delay;
-        case delayFeedBackFlagParam:    return delayFeedBackFlag ? 1.0f : 0.0f;
+        case lowPassFrequencyParam:     return lowPassFrequency;
+        case delayEnabledParam:         return delayEnabledFlag ? 1.0f : 0.0f;
+        case delayFeedBackEnabledParam: return delayFeedBackEnabledFlag ? 1.0f : 0.0f;
+        case lowPassFilterEnabledParam: return lowPassFilterEnabledFlag ? 1.0f : 0.0f;
+
         default:                        return 0.0f;
     }
 }
@@ -71,7 +81,10 @@ void FilterAudioProcessor::setParameter (int index, float newValue)
     {
         case gainParam:                 gain = newValue;  break;
         case delayParam:                delay = newValue;  break;
-        case delayFeedBackFlagParam:    delayFeedBackFlag = newValue > 0.5f ? true : false;
+        case lowPassFrequencyParam:     lowPassFrequency = newValue;  break;
+        case delayEnabledParam:         delayEnabledFlag = newValue > 0.5f;
+        case delayFeedBackEnabledParam: delayFeedBackEnabledFlag = newValue > 0.5f;
+        case lowPassFilterEnabledParam: lowPassFilterEnabledFlag = newValue > 0.5f;
         default:                        break;
     }
 }
@@ -82,7 +95,10 @@ const String FilterAudioProcessor::getParameterName (int index)
     {
         case gainParam:                 return "gain";
         case delayParam:                return "delay";
-        case delayFeedBackFlagParam:    return "delayFeedBackFlag";
+        case lowPassFrequencyParam:     return "lowPassFrequency";
+        case delayEnabledParam:         return "delayEnabledFlag";
+        case delayFeedBackEnabledParam: return "delayFeedBackEnabledFlag";
+        case lowPassFilterEnabledParam: return "lowPassFilterEnabledFlag";
         default:                        break;
     }
     
@@ -197,68 +213,66 @@ void FilterAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& 
     for (channel = 0; channel < getNumInputChannels(); ++channel)
         buffer.applyGain (channel, 0, buffer.getNumSamples(), gain);
 
-    // Apply our delay effect to the new output..
-    for (channel = 0; channel < getNumInputChannels(); ++channel)
-    {
-        float* channelData = buffer.getSampleData (channel);
-        float* delayData = delayBuffer.getSampleData (jmin (channel, delayBuffer.getNumChannels() - 1));
-        dp = delayPosition;
-
-        for (int i = 0; i < numSamples; ++i)
+    if (delayEnabledFlag) {
+        // Apply our delay effect to the new output..
+        for (channel = 0; channel < getNumInputChannels(); ++channel)
         {
-            const float in = channelData[i];
-            channelData[i] += delayData[dp];
-            if (delayFeedBackFlag) {
-                delayData[dp] = (delayData[dp] + in) * delay;
-            }
-            else {
-                delayData[dp] = (in) * delay;
-            }
+            float* channelData = buffer.getSampleData (channel);
+            float* delayData = delayBuffer.getSampleData (jmin (channel, delayBuffer.getNumChannels() - 1));
+            dp = delayPosition;
 
-            if (++dp >= delayBuffer.getNumSamples())
-                dp = 0;
+            for (int i = 0; i < numSamples; ++i)
+            {
+                const float in = channelData[i];
+                channelData[i] += delayData[dp];
+                if (delayFeedBackEnabledFlag) {
+                    delayData[dp] = (delayData[dp] + in) * delay;
+                }
+                else {
+                    delayData[dp] = (in) * delay;
+                }
+
+                if (++dp >= delayBuffer.getNumSamples())
+                    dp = 0;
+            }
         }
-    }
-    
-    delayPosition = dp;
-    
-    // Apply low pass filter
-    for (channel = 0; channel < getNumInputChannels(); ++channel)
-    {
-        float* channelData = buffer.getSampleData (channel);
-        float* lowPassData = lowPassBuffer.getSampleData(jmin(channel, lowPassBuffer.getNumChannels()));
-        lPP = lowPassPosition;
-        angleToFilter = double_Pi * 2 / getSampleRate() * 440;
         
-        for (int i = 0; i < numSamples; ++i)
-        {
-            lowPassData[lPP] = channelData[i];
-//            if (lowPassPosition >= 2) {
-//                channelData[i] = (lowPassData[lowPassPosition] + lowPassData[lowPassPosition - 1]) / 2;
-//            }
-//            else {
-//                channelData[i] = lowPassData[lowPassPosition];
-//            }
-
-
-            if (lowPassPosition >= 2) {
-                channelData[i] = lowPassData[lPP] - 2 * cos(angleToFilter) * lowPassData[lPP - 1] + lowPassData[lPP - 2];
-            }
-            // Simple edge case
-            else if (lPP == 1){
-                channelData[i] = lowPassData[lPP] - 2 * cos(angleToFilter) * lowPassData[lPP - 1] + lowPassData[lowPassBuffer.getNumSamples() - 1];
-            }
-            else {
-                channelData[i] = lowPassData[lPP] - 2 * cos(angleToFilter) * lowPassData[lowPassBuffer.getNumSamples() - 1] + lowPassData[lowPassBuffer.getNumSamples() - 2];
-            }
-            
-            if (++lPP >= lowPassBuffer.getNumSamples()) {
-                    lPP = 0;
-            }
-        }
+        delayPosition = dp;
     }
     
-    lowPassPosition = lPP;
+    
+    if (lowPassFilterEnabledFlag) {
+        // Apply low pass filter
+        for (channel = 0; channel < getNumInputChannels(); ++channel)
+        {
+            float* channelData = buffer.getSampleData (channel);
+            float* lowPassData = lowPassBuffer.getSampleData(jmin(channel, lowPassBuffer.getNumChannels()));
+            lPP = lowPassPosition;
+            angleToFilter = double_Pi * 2 / getSampleRate() * lowPassFrequency;
+            
+            for (int i = 0; i < numSamples; ++i)
+            {
+                lowPassData[lPP] = channelData[i];
+
+                if (lowPassPosition >= 2) {
+                    channelData[i] = lowPassData[lPP] - 2 * cos(angleToFilter) * lowPassData[lPP - 1] + lowPassData[lPP - 2];
+                }
+                // Simple edge case
+                else if (lPP == 1){
+                    channelData[i] = lowPassData[lPP] - 2 * cos(angleToFilter) * lowPassData[lPP - 1] + lowPassData[lowPassBuffer.getNumSamples() - 1];
+                }
+                else {
+                    channelData[i] = lowPassData[lPP] - 2 * cos(angleToFilter) * lowPassData[lowPassBuffer.getNumSamples() - 1] + lowPassData[lowPassBuffer.getNumSamples() - 2];
+                }
+                
+                if (++lPP >= lowPassBuffer.getNumSamples()) {
+                        lPP = 0;
+                }
+            }
+        }
+        
+        lowPassPosition = lPP;
+    }
     
     // In case we have more outputs than inputs, we'll clear any output
     // channels that didn't contain input data, (because these aren't
@@ -307,6 +321,10 @@ void FilterAudioProcessor::getStateInformation (MemoryBlock& destData)
     xml.setAttribute ("uiHeight", lastUIHeight);
     xml.setAttribute ("gain", gain);
     xml.setAttribute ("delay", delay);
+    xml.setAttribute ("lowPassFrequency", lowPassFrequency);
+    xml.setAttribute ("delayEnabledFlag", delayEnabledFlag);
+    xml.setAttribute ("delayFeedBackEnabledFlag", delayFeedBackEnabledFlag);
+    xml.setAttribute ("lowPassFilterEnabledFlag", lowPassFilterEnabledFlag);
     
     // then use this helper function to stuff it into the binary blob and return it..
     copyXmlToBinary (xml, destData);
@@ -331,7 +349,10 @@ void FilterAudioProcessor::setStateInformation (const void* data, int sizeInByte
             
             gain  = (float) xmlState->getDoubleAttribute ("gain", gain);
             delay = (float) xmlState->getDoubleAttribute ("delay", delay);
-            delayFeedBackFlag = (bool) xmlState->getBoolAttribute("delayFeedBackFlag", delayFeedBackFlag);
+            lowPassFrequency = (float) xmlState->getDoubleAttribute ("lowPassFrequency", lowPassFrequency);
+            delayEnabledFlag = (bool) xmlState->getBoolAttribute("delayEnabledFlag", delayEnabledFlag);
+            delayFeedBackEnabledFlag = (bool) xmlState->getBoolAttribute("delayFeedBackEnabledFlag", delayFeedBackEnabledFlag);
+            lowPassFilterEnabledFlag = (bool) xmlState->getBoolAttribute("lowPassFilterEnabledFlag", lowPassFilterEnabledFlag);
         }
     }
 }

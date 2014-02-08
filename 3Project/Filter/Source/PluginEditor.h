@@ -36,9 +36,9 @@ public:
     void buttonClicked (Button*) override;
     
 private:
-    Label infoLabel, gainLabel, delayLabel;
+    Label infoLabel, gainLabel, delayLabel, lowPassFrequencyLabel;
     Slider gainSlider, delaySlider, lowPassFrequencySlider;
-    ToggleButton delayEnabledButton, delayFeedBackFlagButton, lowPassFilterEnabled;
+    ToggleButton delayEnabledButton, delayFeedBackEnabledButton, lowPassFilterEnabledButton;
 /*    sineWaveButton, squareWaveButton, triangleWaveButton, sawToothWaveButton,
     FMWaveButton, AMWaveButton, FMixWaveButton;
 */

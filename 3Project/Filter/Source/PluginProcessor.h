@@ -86,14 +86,17 @@ public:
     {
         gainParam = 0,
         delayParam,
-        delayFeedBackFlagParam,
+        lowPassFrequencyParam,
+        delayEnabledParam,
+        delayFeedBackEnabledParam,
+        lowPassFilterEnabledParam,
 
         
         totalNumParams
     };
     
-    float gain, delay;
-    bool delayFeedBackFlag;
+    float gain, delay, lowPassFrequency;
+    bool delayEnabledFlag, delayFeedBackEnabledFlag, lowPassFilterEnabledFlag;
     
 private:
     //==============================================================================

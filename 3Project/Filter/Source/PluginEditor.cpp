@@ -18,12 +18,13 @@ FilterAudioProcessorEditor::FilterAudioProcessorEditor (FilterAudioProcessor* ow
       infoLabel (String::empty),
       gainLabel ("", "Throughput level:"),
       delayLabel ("", "Delay:"),
+      lowPassFrequencyLabel("", "Low Pass Frequency:"),
       gainSlider ("gain"),
       delaySlider ("delay"),
-      lowPassFilterEnabled("lowPassFilterEnabled"),
       lowPassFrequencySlider("lowPassFrequency"),
       delayEnabledButton("delayEnabled"),
-      delayFeedBackFlagButton ("delayFeedBackFlag")/*,
+      delayFeedBackEnabledButton ("delayFeedBackEnabledButton"),
+      lowPassFilterEnabledButton("lowPassFilterEnabled")/*,
       sineWaveButton ("Sine Wave"),
       squareWaveButton ("Square Wave"),
       triangleWaveButton ("Triangle Wave"),
@@ -43,6 +44,11 @@ FilterAudioProcessorEditor::FilterAudioProcessorEditor (FilterAudioProcessor* ow
     delaySlider.addListener (this);
     delaySlider.setRange (0.0, 1.0, 0.01);
     
+    addAndMakeVisible (lowPassFrequencySlider);
+    lowPassFrequencySlider.setSliderStyle (Slider::Rotary);
+    lowPassFrequencySlider.addListener (this);
+    lowPassFrequencySlider.setRange (0.0, 4186.01, 0.01);
+    
     // add some labels for the sliders..
     gainLabel.attachToComponent (&gainSlider, false);
     gainLabel.setFont (Font (11.0f));
@@ -50,18 +56,25 @@ FilterAudioProcessorEditor::FilterAudioProcessorEditor (FilterAudioProcessor* ow
     delayLabel.attachToComponent (&delaySlider, false);
     delayLabel.setFont (Font (11.0f));
     
-    // add some toggle buttons for the wave types..
+    lowPassFrequencyLabel.attachToComponent (&lowPassFrequencySlider, false);
+    lowPassFrequencyLabel.setFont (Font (11.0f));
+    
+    // add some toggle buttons for the filters..
     addAndMakeVisible (delayEnabledButton);
-    delayEnabledButton.setToggleState(true, dontSendNotification);
+    delayEnabledButton.setToggleState(false, dontSendNotification);
     delayEnabledButton.setClickingTogglesState(true);
     delayEnabledButton.addListener (this);
     
-    // add some toggle buttons for the wave types..
-    addAndMakeVisible (delayFeedBackFlagButton);
-    delayFeedBackFlagButton.setToggleState(true, dontSendNotification);
-    delayFeedBackFlagButton.setClickingTogglesState(true);
-    delayFeedBackFlagButton.addListener (this);
+    addAndMakeVisible (delayFeedBackEnabledButton);
+    delayFeedBackEnabledButton.setToggleState(false, dontSendNotification);
+    delayFeedBackEnabledButton.setClickingTogglesState(true);
+    delayFeedBackEnabledButton.addListener (this);
     
+    addAndMakeVisible (lowPassFilterEnabledButton);
+    lowPassFilterEnabledButton.setToggleState(false, dontSendNotification);
+    lowPassFilterEnabledButton.setClickingTogglesState(true);
+    lowPassFilterEnabledButton.addListener (this);
+
 /*    // add some toggle buttons for the wave types..
     addAndMakeVisible (sineWaveButton);
     sineWaveButton.setToggleState(true, dontSendNotification);
@@ -125,7 +138,10 @@ void FilterAudioProcessorEditor::resized()
     infoLabel.setBounds (10, 4, 400, 25);
     gainSlider.setBounds (20, 60, 150, 40);
     delaySlider.setBounds (200, 60, 150, 40);
-    delayFeedBackFlagButton.setBounds(100, 120, 100, 20);
+    delayEnabledButton.setBounds(20, 120, 100, 20);
+    delayFeedBackEnabledButton.setBounds(200, 120, 100, 20);
+    lowPassFilterEnabledButton.setBounds(20, 150, 100, 20);
+    lowPassFrequencySlider.setBounds(200, 150, 150, 40);
 /*    sineWaveButton.setBounds(0, 120, 100, 20);
     squareWaveButton.setBounds(100, 120, 100, 20);
     triangleWaveButton.setBounds(200, 120, 100, 20);
@@ -154,7 +170,7 @@ void FilterAudioProcessorEditor::timerCallback()
     
     gainSlider.setValue (ourProcessor->gain, dontSendNotification);
     delaySlider.setValue (ourProcessor->delay, dontSendNotification);
-    delayFeedBackFlagButton.setToggleState(ourProcessor->delayFeedBackFlag > 0.5f, dontSendNotification);
+    delayFeedBackEnabledButton.setToggleState(ourProcessor->delayFeedBackEnabledFlag > 0.5f, dontSendNotification);
 }
 
 
@@ -174,6 +190,11 @@ void FilterAudioProcessorEditor::sliderValueChanged (Slider* slider)
         getProcessor()->setParameterNotifyingHost (FilterAudioProcessor::delayParam,
                                                    (float) delaySlider.getValue());
     }
+    else if (slider == &lowPassFrequencySlider)
+    {
+        getProcessor()->setParameterNotifyingHost (FilterAudioProcessor::lowPassFrequencyParam,
+                                                   (float) lowPassFrequencySlider.getValue());
+    }
 }
 
 
@@ -181,13 +202,25 @@ void FilterAudioProcessorEditor::sliderValueChanged (Slider* slider)
 // This is our Button::Listener callback, when the user drags a slider.
 void FilterAudioProcessorEditor::buttonClicked(Button* button)
 {
-    if (button == &delayFeedBackFlagButton)
+    if (button == &delayEnabledButton)
     {
         // It's vital to use setParameterNotifyingHost to change any parameters that are automatable
         // by the host, rather than just modifying them directly, otherwise the host won't know
         // that they've changed.
-        getProcessor()->setParameterNotifyingHost (FilterAudioProcessor::delayFeedBackFlagParam, delayFeedBackFlagButton.getToggleState() ? 1.0f : 0.0f);
-    }/*
+        getProcessor()->setParameterNotifyingHost (FilterAudioProcessor::delayEnabledParam, delayFeedBackEnabledButton.getToggleState() ? 1.0f : 0.0f);
+        delayFeedBackEnabledButton.setEnabled(delayEnabledButton.getToggleState());
+        delaySlider.setEnabled(delayEnabledButton.getToggleState());
+    }
+    else if (button == &delayFeedBackEnabledButton)
+    {
+        getProcessor()->setParameterNotifyingHost (FilterAudioProcessor::delayFeedBackEnabledParam, delayFeedBackEnabledButton.getToggleState() ? 1.0f : 0.0f);
+    }
+    else if (button == &lowPassFilterEnabledButton)
+    {
+        getProcessor()->setParameterNotifyingHost (FilterAudioProcessor::lowPassFilterEnabledParam, lowPassFilterEnabledButton.getToggleState() ? 1.0f : 0.0f);
+        lowPassFrequencySlider.setEnabled(lowPassFilterEnabledButton.getToggleState());
+    }
+    /*
     else if (button == &squareWaveButton)
     {
         getProcessor()->setParameterNotifyingHost (AudioPluginAudioProcessor::waveTypeParam, 1.0);
