@@ -19,7 +19,11 @@ FilterAudioProcessorEditor::FilterAudioProcessorEditor (FilterAudioProcessor* ow
       gainLabel ("", "Throughput level:"),
       delayLabel ("", "Delay:"),
       gainSlider ("gain"),
-      delaySlider ("delay")/*,
+      delaySlider ("delay"),
+      lowPassFilterEnabled("lowPassFilterEnabled"),
+      lowPassFrequencySlider("lowPassFrequency"),
+      delayEnabledButton("delayEnabled"),
+      delayFeedBackFlagButton ("delayFeedBackFlag")/*,
       sineWaveButton ("Sine Wave"),
       squareWaveButton ("Square Wave"),
       triangleWaveButton ("Triangle Wave"),
@@ -45,6 +49,18 @@ FilterAudioProcessorEditor::FilterAudioProcessorEditor (FilterAudioProcessor* ow
     
     delayLabel.attachToComponent (&delaySlider, false);
     delayLabel.setFont (Font (11.0f));
+    
+    // add some toggle buttons for the wave types..
+    addAndMakeVisible (delayEnabledButton);
+    delayEnabledButton.setToggleState(true, dontSendNotification);
+    delayEnabledButton.setClickingTogglesState(true);
+    delayEnabledButton.addListener (this);
+    
+    // add some toggle buttons for the wave types..
+    addAndMakeVisible (delayFeedBackFlagButton);
+    delayFeedBackFlagButton.setToggleState(true, dontSendNotification);
+    delayFeedBackFlagButton.setClickingTogglesState(true);
+    delayFeedBackFlagButton.addListener (this);
     
 /*    // add some toggle buttons for the wave types..
     addAndMakeVisible (sineWaveButton);
@@ -109,6 +125,7 @@ void FilterAudioProcessorEditor::resized()
     infoLabel.setBounds (10, 4, 400, 25);
     gainSlider.setBounds (20, 60, 150, 40);
     delaySlider.setBounds (200, 60, 150, 40);
+    delayFeedBackFlagButton.setBounds(100, 120, 100, 20);
 /*    sineWaveButton.setBounds(0, 120, 100, 20);
     squareWaveButton.setBounds(100, 120, 100, 20);
     triangleWaveButton.setBounds(200, 120, 100, 20);
@@ -137,6 +154,7 @@ void FilterAudioProcessorEditor::timerCallback()
     
     gainSlider.setValue (ourProcessor->gain, dontSendNotification);
     delaySlider.setValue (ourProcessor->delay, dontSendNotification);
+    delayFeedBackFlagButton.setToggleState(ourProcessor->delayFeedBackFlag > 0.5f, dontSendNotification);
 }
 
 
@@ -159,6 +177,46 @@ void FilterAudioProcessorEditor::sliderValueChanged (Slider* slider)
 }
 
 
+
+// This is our Button::Listener callback, when the user drags a slider.
+void FilterAudioProcessorEditor::buttonClicked(Button* button)
+{
+    if (button == &delayFeedBackFlagButton)
+    {
+        // It's vital to use setParameterNotifyingHost to change any parameters that are automatable
+        // by the host, rather than just modifying them directly, otherwise the host won't know
+        // that they've changed.
+        getProcessor()->setParameterNotifyingHost (FilterAudioProcessor::delayFeedBackFlagParam, delayFeedBackFlagButton.getToggleState() ? 1.0f : 0.0f);
+    }/*
+    else if (button == &squareWaveButton)
+    {
+        getProcessor()->setParameterNotifyingHost (AudioPluginAudioProcessor::waveTypeParam, 1.0);
+    }
+    else if (button == &triangleWaveButton)
+    {
+        getProcessor()->setParameterNotifyingHost (AudioPluginAudioProcessor::waveTypeParam, 2.0);
+    }
+    else if (button == &sawToothWaveButton)
+    {
+        getProcessor()->setParameterNotifyingHost (AudioPluginAudioProcessor::waveTypeParam, 3.0);
+    }
+    else if (button == &FMWaveButton)
+    {
+        getProcessor()->setParameterNotifyingHost (AudioPluginAudioProcessor::waveTypeParam, 4.0);
+    }
+    else if (button == &AMWaveButton)
+    {
+        getProcessor()->setParameterNotifyingHost (AudioPluginAudioProcessor::waveTypeParam, 5.0);
+    }
+    else if (button == &FMixWaveButton)
+    {
+        getProcessor()->setParameterNotifyingHost (AudioPluginAudioProcessor::waveTypeParam, 6.0);
+    }*/
+    else
+    {
+        jassertfalse;
+    }
+}
 
 //==============================================================================
 // quick-and-dirty function to format a timecode string

@@ -20,7 +20,7 @@
 */
 class FilterAudioProcessorEditor  : public AudioProcessorEditor,
                                     public Slider::Listener,
-//                                   public Button::Listener,
+                                    public Button::Listener,
                                     public Timer
 {
 public:
@@ -33,12 +33,13 @@ public:
     void paint (Graphics&) override;
     void resized() override;
     void sliderValueChanged (Slider*) override;
-//    void buttonClicked (Button*) override;
+    void buttonClicked (Button*) override;
     
 private:
     Label infoLabel, gainLabel, delayLabel;
-    Slider gainSlider, delaySlider;
-/*    ToggleButton sineWaveButton, squareWaveButton, triangleWaveButton, sawToothWaveButton,
+    Slider gainSlider, delaySlider, lowPassFrequencySlider;
+    ToggleButton delayEnabledButton, delayFeedBackFlagButton, lowPassFilterEnabled;
+/*    sineWaveButton, squareWaveButton, triangleWaveButton, sawToothWaveButton,
     FMWaveButton, AMWaveButton, FMixWaveButton;
 */
  ScopedPointer<ResizableCornerComponent> resizer;

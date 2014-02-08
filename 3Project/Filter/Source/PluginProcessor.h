@@ -86,16 +86,21 @@ public:
     {
         gainParam = 0,
         delayParam,
+        delayFeedBackFlagParam,
+
         
         totalNumParams
     };
     
     float gain, delay;
+    bool delayFeedBackFlag;
     
 private:
     //==============================================================================
     AudioSampleBuffer delayBuffer;
+    AudioSampleBuffer lowPassBuffer;
     int delayPosition;
+    int lowPassPosition;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (FilterAudioProcessor)
 };

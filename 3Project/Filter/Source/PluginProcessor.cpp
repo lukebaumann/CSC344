@@ -12,21 +12,25 @@
 #include "PluginEditor.h"
 
 const float defaultGain = 1.0f;
-const float defaultDelay = 0.5f;
+const float defaultDelay = 0.0f;
+const bool defaultDelayFeedBackFlag = false;
 
 //==============================================================================
 FilterAudioProcessor::FilterAudioProcessor()
-    : delayBuffer(2, 12000)
+    : delayBuffer(2, 12000),
+      lowPassBuffer(2, 12000)
 {
     // Set up some default values..
     gain = defaultGain;
     delay = defaultDelay;
+    delayFeedBackFlag = defaultDelayFeedBackFlag;
     
     lastUIWidth = 400;
     lastUIHeight = 270;
     
     lastPosInfo.resetToDefault();
     delayPosition = 0;
+    lowPassPosition = 0;
 }
 
 FilterAudioProcessor::~FilterAudioProcessor()
@@ -51,9 +55,10 @@ float FilterAudioProcessor::getParameter (int index)
     // UI-related, or anything at all that may block in any way!
     switch (index)
     {
-        case gainParam:     return gain;
-        case delayParam:    return delay;
-        default:            return 0.0f;
+        case gainParam:                 return gain;
+        case delayParam:                return delay;
+        case delayFeedBackFlagParam:    return delayFeedBackFlag ? 1.0f : 0.0f;
+        default:                        return 0.0f;
     }
 }
 
@@ -64,9 +69,10 @@ void FilterAudioProcessor::setParameter (int index, float newValue)
     // UI-related, or anything at all that may block in any way!
     switch (index)
     {
-        case gainParam:     gain = newValue;  break;
-        case delayParam:    delay = newValue;  break;
-        default:            break;
+        case gainParam:                 gain = newValue;  break;
+        case delayParam:                delay = newValue;  break;
+        case delayFeedBackFlagParam:    delayFeedBackFlag = newValue > 0.5f ? true : false;
+        default:                        break;
     }
 }
 
@@ -74,9 +80,10 @@ const String FilterAudioProcessor::getParameterName (int index)
 {
     switch (index)
     {
-        case gainParam:     return "gain";
-        case delayParam:    return "delay";
-        default:            break;
+        case gainParam:                 return "gain";
+        case delayParam:                return "delay";
+        case delayFeedBackFlagParam:    return "delayFeedBackFlag";
+        default:                        break;
     }
     
     return String::empty;
@@ -164,6 +171,7 @@ void FilterAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
     delayBuffer.clear();
+    lowPassBuffer.clear();
 }
 
 void FilterAudioProcessor::releaseResources()
@@ -177,12 +185,13 @@ void FilterAudioProcessor::reset()
     // Use this method as the place to clear any delay lines, buffers, etc, as it
     // means there's been a break in the audio's continuity.
     delayBuffer.clear();
+    lowPassBuffer.clear();
 }
 
 void FilterAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& midiMessages)
 {
     const int numSamples = buffer.getNumSamples();
-    int channel, dp = 0;
+    int channel, dp = 0, lPP = 0, angleToFilter = 0;
     
     // Go through the incoming data, and apply our gain to it...
     for (channel = 0; channel < getNumInputChannels(); ++channel)
@@ -199,8 +208,12 @@ void FilterAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& 
         {
             const float in = channelData[i];
             channelData[i] += delayData[dp];
-//            delayData[dp] = (delayData[dp] + in) * delay;
-            delayData[dp] = (in) * delay;
+            if (delayFeedBackFlag) {
+                delayData[dp] = (delayData[dp] + in) * delay;
+            }
+            else {
+                delayData[dp] = (in) * delay;
+            }
 
             if (++dp >= delayBuffer.getNumSamples())
                 dp = 0;
@@ -208,6 +221,44 @@ void FilterAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& 
     }
     
     delayPosition = dp;
+    
+    // Apply low pass filter
+    for (channel = 0; channel < getNumInputChannels(); ++channel)
+    {
+        float* channelData = buffer.getSampleData (channel);
+        float* lowPassData = lowPassBuffer.getSampleData(jmin(channel, lowPassBuffer.getNumChannels()));
+        lPP = lowPassPosition;
+        angleToFilter = double_Pi * 2 / getSampleRate() * 440;
+        
+        for (int i = 0; i < numSamples; ++i)
+        {
+            lowPassData[lPP] = channelData[i];
+//            if (lowPassPosition >= 2) {
+//                channelData[i] = (lowPassData[lowPassPosition] + lowPassData[lowPassPosition - 1]) / 2;
+//            }
+//            else {
+//                channelData[i] = lowPassData[lowPassPosition];
+//            }
+
+
+            if (lowPassPosition >= 2) {
+                channelData[i] = lowPassData[lPP] - 2 * cos(angleToFilter) * lowPassData[lPP - 1] + lowPassData[lPP - 2];
+            }
+            // Simple edge case
+            else if (lPP == 1){
+                channelData[i] = lowPassData[lPP] - 2 * cos(angleToFilter) * lowPassData[lPP - 1] + lowPassData[lowPassBuffer.getNumSamples() - 1];
+            }
+            else {
+                channelData[i] = lowPassData[lPP] - 2 * cos(angleToFilter) * lowPassData[lowPassBuffer.getNumSamples() - 1] + lowPassData[lowPassBuffer.getNumSamples() - 2];
+            }
+            
+            if (++lPP >= lowPassBuffer.getNumSamples()) {
+                    lPP = 0;
+            }
+        }
+    }
+    
+    lowPassPosition = lPP;
     
     // In case we have more outputs than inputs, we'll clear any output
     // channels that didn't contain input data, (because these aren't
@@ -280,6 +331,7 @@ void FilterAudioProcessor::setStateInformation (const void* data, int sizeInByte
             
             gain  = (float) xmlState->getDoubleAttribute ("gain", gain);
             delay = (float) xmlState->getDoubleAttribute ("delay", delay);
+            delayFeedBackFlag = (bool) xmlState->getBoolAttribute("delayFeedBackFlag", delayFeedBackFlag);
         }
     }
 }
