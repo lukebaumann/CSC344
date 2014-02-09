@@ -243,26 +243,6 @@ void FilterAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& 
                 else {
                     assert(false);
                 }
-//                
-//                if (lPP == 2) {
-//                    lowPassData[2] = in;
-//
-//                    channelData[i] = lowPassData[2] - 2 * cos(angleToFilter) * lowPassData[1] + lowPassData[0];
-//                }
-//                // Simple edge case
-//                else if (lPP == 1) {
-//                    lowPassData[1] = in;
-//
-//                    channelData[i] = lowPassData[1] - 2 * cos(angleToFilter) * lowPassData[0] + lowPassData[2];
-//                }
-//                else if (lPP == 0) {
-//                    lowPassData[0] = in;
-//                    channelData[i] = lowPassData[0] - 2 * cos(angleToFilter) * lowPassData[2] + lowPassData[1];
-//                }
-//                else {
-//                    assert(false);
-//                }
-
                 
                 if (++lPP >= lowPassBuffer.getNumSamples()) {
                     lPP = 0;
