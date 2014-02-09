@@ -45,7 +45,7 @@ const String FilterAudioProcessor::getName() const
 
 int FilterAudioProcessor::getNumParameters()
 {
-    return 0;
+    return totalNumParams;
 }
 
 float FilterAudioProcessor::getParameter (int index)
@@ -193,13 +193,13 @@ void FilterAudioProcessor::reset()
 void FilterAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& midiMessages)
 {
     const int numSamples = buffer.getNumSamples();
-    int channel, dp = 0, lPP = 0, angleToFilter = 0;
+    int channel, dp = 0;
     
     // Go through the incoming data, and apply our gain to it...
     for (channel = 0; channel < getNumInputChannels(); ++channel)
         buffer.applyGain (channel, 0, buffer.getNumSamples(), gain);
     
-    // Apply low pass filter
+    // Apply delay
     for (channel = 0; channel < getNumInputChannels(); ++channel)
     {
         float* channelData = buffer.getSampleData (channel);
@@ -224,11 +224,9 @@ void FilterAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& 
                     dp = 0;
             }
         }
-        
-        delayPosition = dp;
     }
-        
-
+    
+    delayPosition = dp;
     
     // In case we have more outputs than inputs, we'll clear any output
     // channels that didn't contain input data, (because these aren't

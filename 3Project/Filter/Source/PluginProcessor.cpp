@@ -51,7 +51,7 @@ const String FilterAudioProcessor::getName() const
 
 int FilterAudioProcessor::getNumParameters()
 {
-    return 0;
+    return totalNumParams;
 }
 
 float FilterAudioProcessor::getParameter (int index)
