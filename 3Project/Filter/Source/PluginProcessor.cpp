@@ -229,65 +229,65 @@ void FilterAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& 
             const float in = channelData[i];
 
             if (lowPassFilterEnabledFlag) {
-//                lowPassData[lPP] = in;
-//                if (lPP >= 2 && lPP < lowPassBuffer.getNumSamples()) {
-//                    channelData[i] = lowPassData[lPP] - 2 * cos(angleToFilter) * lowPassData[lPP - 1] + lowPassData[lPP - 2];
-//                }
-//                // Simple edge case
-//                else if (lPP == 1) {
-//                    channelData[i] = lowPassData[lPP] - 2 * cos(angleToFilter) * lowPassData[lPP - 1] + lowPassData[lowPassBuffer.getNumSamples() - 1];
-//                }
-//                else if (lPP == 0) {
-//                    channelData[i] = lowPassData[lPP] - 2 * cos(angleToFilter) * lowPassData[lowPassBuffer.getNumSamples() - 1] + lowPassData[lowPassBuffer.getNumSamples() - 2];
-//                }
-//                else {
-//                    assert(false);
-//                }
-                
-                if (lPP == 2) {
-                    lowPassData[2] = in;
-
-                    channelData[i] = lowPassData[2] - 2 * cos(angleToFilter) * lowPassData[1] + lowPassData[0];
+                lowPassData[lPP] = in;
+                if (lPP >= 2 && lPP < lowPassBuffer.getNumSamples()) {
+                    channelData[i] = lowPassData[lPP] - 2 * cos(angleToFilter) * lowPassData[lPP - 1] + lowPassData[lPP - 2];
                 }
                 // Simple edge case
                 else if (lPP == 1) {
-                    lowPassData[1] = in;
-
-                    channelData[i] = lowPassData[1] - 2 * cos(angleToFilter) * lowPassData[0] + lowPassData[2];
+                    channelData[i] = lowPassData[lPP] - 2 * cos(angleToFilter) * lowPassData[lPP - 1] + lowPassData[lowPassBuffer.getNumSamples() - 1];
                 }
                 else if (lPP == 0) {
-                    lowPassData[0] = in;
-                    channelData[i] = lowPassData[0] - 2 * cos(angleToFilter) * lowPassData[2] + lowPassData[1];
+                    channelData[i] = lowPassData[lPP] - 2 * cos(angleToFilter) * lowPassData[lowPassBuffer.getNumSamples() - 1] + lowPassData[lowPassBuffer.getNumSamples() - 2];
                 }
                 else {
                     assert(false);
                 }
+//                
+//                if (lPP == 2) {
+//                    lowPassData[2] = in;
+//
+//                    channelData[i] = lowPassData[2] - 2 * cos(angleToFilter) * lowPassData[1] + lowPassData[0];
+//                }
+//                // Simple edge case
+//                else if (lPP == 1) {
+//                    lowPassData[1] = in;
+//
+//                    channelData[i] = lowPassData[1] - 2 * cos(angleToFilter) * lowPassData[0] + lowPassData[2];
+//                }
+//                else if (lPP == 0) {
+//                    lowPassData[0] = in;
+//                    channelData[i] = lowPassData[0] - 2 * cos(angleToFilter) * lowPassData[2] + lowPassData[1];
+//                }
+//                else {
+//                    assert(false);
+//                }
 
                 
-                if (++lPP >= 3) {
+                if (++lPP >= lowPassBuffer.getNumSamples()) {
                     lPP = 0;
                 }
             }
             
-//            if (delayEnabledFlag) {
-//                float temp = channelData[i];
-//                channelData[i] += delayData[dp];
-//                if (delayFeedBackEnabledFlag) {
-//                    delayData[dp] = (delayData[dp] + temp) * delay;
-//                }
-//                else {
-//                    delayData[dp] = (temp) * delay;
-//                }
-//                
-//                if (++dp >= delayBuffer.getNumSamples())
-//                    dp = 0;
-//            }
+            if (delayEnabledFlag) {
+                float temp = channelData[i];
+                channelData[i] += delayData[dp];
+                if (delayFeedBackEnabledFlag) {
+                    delayData[dp] = (delayData[dp] + temp) * delay;
+                }
+                else {
+                    delayData[dp] = (temp) * delay;
+                }
+                
+                if (++dp >= delayBuffer.getNumSamples())
+                    dp = 0;
+            }
         }
         
-        lowPassPosition = lPP;
-        delayPosition = dp;
     }
-        
+    
+    lowPassPosition = lPP;
+    delayPosition = dp;
 
     
     // In case we have more outputs than inputs, we'll clear any output
