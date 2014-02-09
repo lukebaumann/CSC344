@@ -13,7 +13,7 @@
 
 const float defaultGain = 1.0f;
 const float defaultDelay = 0.0f;
-const float defaultLowPassFrequency = 440.0f;
+const float defaultLowPassFrequency = 220.0f;
 const bool defaultDelayEnabledFlag = false;
 const bool defaultDelayFeedBackEnabledFlag = false;
 const bool defaultLowPassFilterEnabledFlag = false;
@@ -82,9 +82,9 @@ void FilterAudioProcessor::setParameter (int index, float newValue)
         case gainParam:                 gain = newValue;  break;
         case delayParam:                delay = newValue;  break;
         case lowPassFrequencyParam:     lowPassFrequency = newValue;  break;
-        case delayEnabledParam:         delayEnabledFlag = newValue > 0.5f;
-        case delayFeedBackEnabledParam: delayFeedBackEnabledFlag = newValue > 0.5f;
-        case lowPassFilterEnabledParam: lowPassFilterEnabledFlag = newValue > 0.5f;
+        case delayEnabledParam:         delayEnabledFlag = newValue > 0.5f; break;
+        case delayFeedBackEnabledParam: delayFeedBackEnabledFlag = newValue > 0.5f; break;
+        case lowPassFilterEnabledParam: lowPassFilterEnabledFlag = newValue > 0.5f; break;
         default:                        break;
     }
 }
@@ -212,18 +212,45 @@ void FilterAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& 
     // Go through the incoming data, and apply our gain to it...
     for (channel = 0; channel < getNumInputChannels(); ++channel)
         buffer.applyGain (channel, 0, buffer.getNumSamples(), gain);
-
-    if (delayEnabledFlag) {
-        // Apply our delay effect to the new output..
-        for (channel = 0; channel < getNumInputChannels(); ++channel)
+    
+    // Apply low pass filter
+    for (channel = 0; channel < getNumInputChannels(); ++channel)
+    {
+        float* channelData = buffer.getSampleData (channel);
+        float* delayData = delayBuffer.getSampleData (jmin (channel, delayBuffer.getNumChannels() - 1));
+        float* lowPassData = lowPassBuffer.getSampleData(jmin(channel, lowPassBuffer.getNumChannels()));
+        
+        dp = delayPosition;
+        lPP = lowPassPosition;
+        angleToFilter = double_Pi * 2 / getSampleRate() * lowPassFrequency;
+        
+        for (int i = 0; i < numSamples; ++i)
         {
-            float* channelData = buffer.getSampleData (channel);
-            float* delayData = delayBuffer.getSampleData (jmin (channel, delayBuffer.getNumChannels() - 1));
-            dp = delayPosition;
+            const float in = channelData[i];
 
-            for (int i = 0; i < numSamples; ++i)
-            {
-                const float in = channelData[i];
+            if (lowPassFilterEnabledFlag) {
+                lowPassData[lPP] = in;
+
+                if (lPP >= 2 && lPP < lowPassBuffer.getNumSamples()) {
+                    channelData[i] = lowPassData[lPP] - 2 * cos(angleToFilter) * lowPassData[lPP - 1] + lowPassData[lPP - 2];
+                }
+                // Simple edge case
+                else if (lPP == 1) {
+                    channelData[i] = lowPassData[lPP] - 2 * cos(angleToFilter) * lowPassData[lPP - 1] + lowPassData[lowPassBuffer.getNumSamples() - 1];
+                }
+                else if (lPP == 0) {
+                    channelData[i] = lowPassData[lPP] - 2 * cos(angleToFilter) * lowPassData[lowPassBuffer.getNumSamples() - 1] + lowPassData[lowPassBuffer.getNumSamples() - 2];
+                }
+                else {
+                    assert(false);
+                }
+                
+                if (++lPP >= lowPassBuffer.getNumSamples()) {
+                    lPP = 0;
+                }
+            }
+            
+            if (delayEnabledFlag) {
                 channelData[i] += delayData[dp];
                 if (delayFeedBackEnabledFlag) {
                     delayData[dp] = (delayData[dp] + in) * delay;
@@ -231,48 +258,17 @@ void FilterAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& 
                 else {
                     delayData[dp] = (in) * delay;
                 }
-
+                
                 if (++dp >= delayBuffer.getNumSamples())
                     dp = 0;
             }
         }
         
+        lowPassPosition = lPP;
         delayPosition = dp;
     }
-    
-    
-    if (lowPassFilterEnabledFlag) {
-        // Apply low pass filter
-        for (channel = 0; channel < getNumInputChannels(); ++channel)
-        {
-            float* channelData = buffer.getSampleData (channel);
-            float* lowPassData = lowPassBuffer.getSampleData(jmin(channel, lowPassBuffer.getNumChannels()));
-            lPP = lowPassPosition;
-            angleToFilter = double_Pi * 2 / getSampleRate() * lowPassFrequency;
-            
-            for (int i = 0; i < numSamples; ++i)
-            {
-                lowPassData[lPP] = channelData[i];
-
-                if (lowPassPosition >= 2) {
-                    channelData[i] = lowPassData[lPP] - 2 * cos(angleToFilter) * lowPassData[lPP - 1] + lowPassData[lPP - 2];
-                }
-                // Simple edge case
-                else if (lPP == 1){
-                    channelData[i] = lowPassData[lPP] - 2 * cos(angleToFilter) * lowPassData[lPP - 1] + lowPassData[lowPassBuffer.getNumSamples() - 1];
-                }
-                else {
-                    channelData[i] = lowPassData[lPP] - 2 * cos(angleToFilter) * lowPassData[lowPassBuffer.getNumSamples() - 1] + lowPassData[lowPassBuffer.getNumSamples() - 2];
-                }
-                
-                if (++lPP >= lowPassBuffer.getNumSamples()) {
-                        lPP = 0;
-                }
-            }
-        }
         
-        lowPassPosition = lPP;
-    }
+
     
     // In case we have more outputs than inputs, we'll clear any output
     // channels that didn't contain input data, (because these aren't
