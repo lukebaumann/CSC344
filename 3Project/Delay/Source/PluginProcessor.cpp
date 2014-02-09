@@ -13,30 +13,24 @@
 
 const float defaultGain = 1.0f;
 const float defaultDelay = 0.0f;
-const float defaultLowPassFrequency = 220.0f;
 const bool defaultDelayEnabledFlag = false;
 const bool defaultDelayFeedBackEnabledFlag = false;
-const bool defaultLowPassFilterEnabledFlag = false;
 
 //==============================================================================
 FilterAudioProcessor::FilterAudioProcessor()
-    : delayBuffer(2, 12000),
-      lowPassBuffer(2, 12000)
+    : delayBuffer(2, 12000)
 {
     // Set up some default values..
     gain = defaultGain;
     delay = defaultDelay;
-    lowPassFrequency = defaultLowPassFrequency;
     delayEnabledFlag = defaultDelayEnabledFlag;
     delayFeedBackEnabledFlag = defaultDelayFeedBackEnabledFlag;
-    lowPassFilterEnabledFlag = defaultLowPassFilterEnabledFlag;
     
     lastUIWidth = 400;
     lastUIHeight = 270;
     
     lastPosInfo.resetToDefault();
     delayPosition = 0;
-    lowPassPosition = 0;
 }
 
 FilterAudioProcessor::~FilterAudioProcessor()
@@ -63,10 +57,8 @@ float FilterAudioProcessor::getParameter (int index)
     {
         case gainParam:                 return gain;
         case delayParam:                return delay;
-        case lowPassFrequencyParam:     return lowPassFrequency;
         case delayEnabledParam:         return delayEnabledFlag ? 1.0f : 0.0f;
         case delayFeedBackEnabledParam: return delayFeedBackEnabledFlag ? 1.0f : 0.0f;
-        case lowPassFilterEnabledParam: return lowPassFilterEnabledFlag ? 1.0f : 0.0f;
 
         default:                        return 0.0f;
     }
@@ -81,10 +73,8 @@ void FilterAudioProcessor::setParameter (int index, float newValue)
     {
         case gainParam:                 gain = newValue;  break;
         case delayParam:                delay = newValue;  break;
-        case lowPassFrequencyParam:     lowPassFrequency = newValue;  break;
         case delayEnabledParam:         delayEnabledFlag = newValue > 0.5f; break;
         case delayFeedBackEnabledParam: delayFeedBackEnabledFlag = newValue > 0.5f; break;
-        case lowPassFilterEnabledParam: lowPassFilterEnabledFlag = newValue > 0.5f; break;
         default:                        break;
     }
 }
@@ -95,10 +85,8 @@ const String FilterAudioProcessor::getParameterName (int index)
     {
         case gainParam:                 return "gain";
         case delayParam:                return "delay";
-        case lowPassFrequencyParam:     return "lowPassFrequency";
         case delayEnabledParam:         return "delayEnabledFlag";
         case delayFeedBackEnabledParam: return "delayFeedBackEnabledFlag";
-        case lowPassFilterEnabledParam: return "lowPassFilterEnabledFlag";
         default:                        break;
     }
     
@@ -187,7 +175,6 @@ void FilterAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
     delayBuffer.clear();
-    lowPassBuffer.clear();
 }
 
 void FilterAudioProcessor::releaseResources()
@@ -201,7 +188,6 @@ void FilterAudioProcessor::reset()
     // Use this method as the place to clear any delay lines, buffers, etc, as it
     // means there's been a break in the audio's continuity.
     delayBuffer.clear();
-    lowPassBuffer.clear();
 }
 
 void FilterAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& midiMessages)
@@ -218,73 +204,27 @@ void FilterAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& 
     {
         float* channelData = buffer.getSampleData (channel);
         float* delayData = delayBuffer.getSampleData (jmin (channel, delayBuffer.getNumChannels() - 1));
-        float* lowPassData = lowPassBuffer.getSampleData(jmin(channel, lowPassBuffer.getNumChannels()));
         
         dp = delayPosition;
-        lPP = lowPassPosition;
-        angleToFilter = double_Pi * 2 / getSampleRate() * lowPassFrequency;
         
         for (int i = 0; i < numSamples; ++i)
         {
             const float in = channelData[i];
 
-            if (lowPassFilterEnabledFlag) {
-//                lowPassData[lPP] = in;
-//                if (lPP >= 2 && lPP < lowPassBuffer.getNumSamples()) {
-//                    channelData[i] = lowPassData[lPP] - 2 * cos(angleToFilter) * lowPassData[lPP - 1] + lowPassData[lPP - 2];
-//                }
-//                // Simple edge case
-//                else if (lPP == 1) {
-//                    channelData[i] = lowPassData[lPP] - 2 * cos(angleToFilter) * lowPassData[lPP - 1] + lowPassData[lowPassBuffer.getNumSamples() - 1];
-//                }
-//                else if (lPP == 0) {
-//                    channelData[i] = lowPassData[lPP] - 2 * cos(angleToFilter) * lowPassData[lowPassBuffer.getNumSamples() - 1] + lowPassData[lowPassBuffer.getNumSamples() - 2];
-//                }
-//                else {
-//                    assert(false);
-//                }
-                
-                if (lPP == 2) {
-                    lowPassData[2] = in;
-
-                    channelData[i] = lowPassData[2] - 2 * cos(angleToFilter) * lowPassData[1] + lowPassData[0];
-                }
-                // Simple edge case
-                else if (lPP == 1) {
-                    lowPassData[1] = in;
-
-                    channelData[i] = lowPassData[1] - 2 * cos(angleToFilter) * lowPassData[0] + lowPassData[2];
-                }
-                else if (lPP == 0) {
-                    lowPassData[0] = in;
-                    channelData[i] = lowPassData[0] - 2 * cos(angleToFilter) * lowPassData[2] + lowPassData[1];
+            if (delayEnabledFlag) {
+                channelData[i] += delayData[dp];
+                if (delayFeedBackEnabledFlag) {
+                    delayData[dp] = (delayData[dp] + in) * delay;
                 }
                 else {
-                    assert(false);
+                    delayData[dp] = (in) * delay;
                 }
-
                 
-                if (++lPP >= 3) {
-                    lPP = 0;
-                }
+                if (++dp >= delayBuffer.getNumSamples())
+                    dp = 0;
             }
-            
-//            if (delayEnabledFlag) {
-//                float temp = channelData[i];
-//                channelData[i] += delayData[dp];
-//                if (delayFeedBackEnabledFlag) {
-//                    delayData[dp] = (delayData[dp] + temp) * delay;
-//                }
-//                else {
-//                    delayData[dp] = (temp) * delay;
-//                }
-//                
-//                if (++dp >= delayBuffer.getNumSamples())
-//                    dp = 0;
-//            }
         }
         
-        lowPassPosition = lPP;
         delayPosition = dp;
     }
         
@@ -337,10 +277,8 @@ void FilterAudioProcessor::getStateInformation (MemoryBlock& destData)
     xml.setAttribute ("uiHeight", lastUIHeight);
     xml.setAttribute ("gain", gain);
     xml.setAttribute ("delay", delay);
-    xml.setAttribute ("lowPassFrequency", lowPassFrequency);
     xml.setAttribute ("delayEnabledFlag", delayEnabledFlag);
     xml.setAttribute ("delayFeedBackEnabledFlag", delayFeedBackEnabledFlag);
-    xml.setAttribute ("lowPassFilterEnabledFlag", lowPassFilterEnabledFlag);
     
     // then use this helper function to stuff it into the binary blob and return it..
     copyXmlToBinary (xml, destData);
@@ -365,10 +303,8 @@ void FilterAudioProcessor::setStateInformation (const void* data, int sizeInByte
             
             gain  = (float) xmlState->getDoubleAttribute ("gain", gain);
             delay = (float) xmlState->getDoubleAttribute ("delay", delay);
-            lowPassFrequency = (float) xmlState->getDoubleAttribute ("lowPassFrequency", lowPassFrequency);
             delayEnabledFlag = (bool) xmlState->getBoolAttribute("delayEnabledFlag", delayEnabledFlag);
             delayFeedBackEnabledFlag = (bool) xmlState->getBoolAttribute("delayFeedBackEnabledFlag", delayFeedBackEnabledFlag);
-            lowPassFilterEnabledFlag = (bool) xmlState->getBoolAttribute("lowPassFilterEnabledFlag", lowPassFilterEnabledFlag);
         }
     }
 }
