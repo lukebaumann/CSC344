@@ -17,8 +17,8 @@ const bool defaultLowPassFilterEnabledFlag = false;
 
 //==============================================================================
 FilterAudioProcessor::FilterAudioProcessor()
-    : lowPassBuffer(2, 10000),
-      inputBuffer(2, 10000)
+    : lowPassBuffer(2, 4),
+      inputBuffer(2, 4)
 {
     // Set up some default values..
     gain = defaultGain;
@@ -272,7 +272,7 @@ void FilterAudioProcessor::chebyshevFilter(float angleToFilter, float* lowPassDa
     calculateCoefficients(angleToFilter, coefficients);
     
     for (int i = 0; i < numSamples; ++i) {
-        pastInputData[lPP] = channelData[i];
+        pastInputData[lPP] = channelData[i] / 3818784.0f;
         
         if (lPP >= 4) {
             pastInputTemp = pastInputData[lPP] + 4 * pastInputData[lPP - 1] + 6 * pastInputData[lPP - 2] + 4 * pastInputData[lPP - 3] + pastInputData[lPP - 4];
@@ -305,9 +305,9 @@ void FilterAudioProcessor::chebyshevFilter(float angleToFilter, float* lowPassDa
         }
 
         // This is with the input feedback per the Filter Design Results website
-        //channelData[i] = lowPassData[lPP] = pastInputTemp + pastOutputTemp.real();
+        channelData[i] = lowPassData[lPP] = pastInputTemp / 16 + pastOutputTemp.real() / coefficients[0].real() / coefficients[1].real() / coefficients[2].real() / coefficients[3].real();
         // This is with the coefficients from class
-                        channelData[i] = lowPassData[lPP] = pastInputData[lPP] + pastOutputTemp.real();
+        //channelData[i] = lowPassData[lPP] = pastInputData[lPP] + pastOutputTemp.real();
         
         
         if (++lPP >= lowPassBuffer.getNumSamples()) {
