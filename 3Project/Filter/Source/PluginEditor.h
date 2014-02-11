@@ -36,12 +36,10 @@ public:
     void buttonClicked (Button*) override;
     
 private:
-    Label infoLabel, gainLabel, delayLabel, lowPassFrequencyLabel;
-    Slider gainSlider, delaySlider, lowPassFrequencySlider;
-    ToggleButton delayEnabledButton, delayFeedBackEnabledButton, lowPassFilterEnabledButton;
-/*    sineWaveButton, squareWaveButton, triangleWaveButton, sawToothWaveButton,
-    FMWaveButton, AMWaveButton, FMixWaveButton;
-*/
+    Label infoLabel, gainLabel, lowPassFrequencyLabel;
+    Slider gainSlider, lowPassFrequencySlider;
+    ToggleButton lowPassFilterEnabledButton;
+
  ScopedPointer<ResizableCornerComponent> resizer;
     ComponentBoundsConstrainer resizeLimits;
     

@@ -11,7 +11,11 @@
 #ifndef PLUGINPROCESSOR_H_INCLUDED
 #define PLUGINPROCESSOR_H_INCLUDED
 
+// As of now the code only supports 4 poles
+#define NUMBER_OF_POLES 4
+
 #include "../JuceLibraryCode/JuceHeader.h"
+#include <complex.h>
 
 
 //==============================================================================
@@ -85,25 +89,24 @@ public:
     enum Parameters
     {
         gainParam = 0,
-        delayParam,
         lowPassFrequencyParam,
-        delayEnabledParam,
-        delayFeedBackEnabledParam,
         lowPassFilterEnabledParam,
 
         
         totalNumParams
     };
     
-    float gain, delay, lowPassFrequency;
-    bool delayEnabledFlag, delayFeedBackEnabledFlag, lowPassFilterEnabledFlag;
+    float gain, lowPassFrequency;
+    bool lowPassFilterEnabledFlag;
     
 private:
     //==============================================================================
-    AudioSampleBuffer delayBuffer;
     AudioSampleBuffer lowPassBuffer;
-    int delayPosition;
     int lowPassPosition;
+    std::complex<float> chebyshevPoles[NUMBER_OF_POLES];
+    std::complex<float> zPoles[NUMBER_OF_POLES];
+    const std::complex<float> I = std::complex<float>(0.0, 1.0);
+    
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (FilterAudioProcessor)
 };
