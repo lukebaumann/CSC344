@@ -24,14 +24,7 @@ FilterAudioProcessorEditor::FilterAudioProcessorEditor (FilterAudioProcessor* ow
       lowPassFrequencySlider("lowPassFrequency"),
       delayEnabledButton("Delay Enabled"),
       delayFeedBackEnabledButton ("delayFeedBackEnabledButton"),
-      lowPassFilterEnabledButton("lowPassFilterEnabled")/*,
-      sineWaveButton ("Sine Wave"),
-      squareWaveButton ("Square Wave"),
-      triangleWaveButton ("Triangle Wave"),
-      sawToothWaveButton ("Saw Tooth Wave"),
-      FMWaveButton ("Frequency Modulation Wave"),
-      AMWaveButton ("Amplitude Modulation Wave"),
-      FMixWaveButton ("Frequency Mixing Wave")*/
+      lowPassFilterEnabledButton("lowPassFilterEnabled")
 {
     // add some sliders..
     addAndMakeVisible (gainSlider);
@@ -49,7 +42,7 @@ FilterAudioProcessorEditor::FilterAudioProcessorEditor (FilterAudioProcessor* ow
     lowPassFrequencySlider.setSliderStyle (Slider::Rotary);
     lowPassFrequencySlider.addListener (this);
     lowPassFrequencySlider.setEnabled(false);
-    lowPassFrequencySlider.setRange (0.0, 4186.01, 0.01);
+    lowPassFrequencySlider.setRange (-10, 10, 1);
     
     // add some labels for the sliders..
     gainLabel.attachToComponent (&gainSlider, false);
@@ -76,37 +69,6 @@ FilterAudioProcessorEditor::FilterAudioProcessorEditor (FilterAudioProcessor* ow
     lowPassFilterEnabledButton.setToggleState(false, dontSendNotification);
     lowPassFilterEnabledButton.setClickingTogglesState(true);
     lowPassFilterEnabledButton.addListener (this);
-
-/*    // add some toggle buttons for the wave types..
-    addAndMakeVisible (sineWaveButton);
-    sineWaveButton.setToggleState(true, dontSendNotification);
-    sineWaveButton.setRadioGroupId(1);
-    sineWaveButton.addListener (this);
-    
-    addAndMakeVisible (squareWaveButton);
-    squareWaveButton.setRadioGroupId(1);
-    squareWaveButton.addListener (this);
-    
-    addAndMakeVisible (triangleWaveButton);
-    triangleWaveButton.setRadioGroupId(1);
-    triangleWaveButton.addListener (this);
-    
-    addAndMakeVisible (sawToothWaveButton);
-    sawToothWaveButton.setRadioGroupId(1);
-    sawToothWaveButton.addListener (this);
-    
-    addAndMakeVisible (FMWaveButton);
-    FMWaveButton.setRadioGroupId(1);
-    FMWaveButton.addListener (this);
-    
-    addAndMakeVisible (AMWaveButton);
-    AMWaveButton.setRadioGroupId(1);
-    AMWaveButton.addListener (this);
-    
-    addAndMakeVisible (FMixWaveButton);
-    FMixWaveButton.setRadioGroupId(1);
-    FMixWaveButton.addListener (this);
-*/
     
     // add a label that will display the current timecode and status..
     addAndMakeVisible (infoLabel);
@@ -144,13 +106,6 @@ void FilterAudioProcessorEditor::resized()
     delayFeedBackEnabledButton.setBounds(200, 120, 100, 20);
     lowPassFilterEnabledButton.setBounds(20, 150, 100, 20);
     lowPassFrequencySlider.setBounds(200, 150, 150, 40);
-/*    sineWaveButton.setBounds(0, 120, 100, 20);
-    squareWaveButton.setBounds(100, 120, 100, 20);
-    triangleWaveButton.setBounds(200, 120, 100, 20);
-    sawToothWaveButton.setBounds(300, 120, 100, 20);
-    FMWaveButton.setBounds(50, 150, 100, 20);
-    AMWaveButton.setBounds(150, 150, 100, 20);
-    FMixWaveButton.setBounds(250, 150, 100, 20);*/
 
     resizer->setBounds (getWidth() - 16, getHeight() - 16, 16, 16);
     
@@ -225,31 +180,6 @@ void FilterAudioProcessorEditor::buttonClicked(Button* button)
         getProcessor()->setParameterNotifyingHost (FilterAudioProcessor::lowPassFilterEnabledParam, lowPassFilterEnabledButton.getToggleState() ? 1.0f : 0.0f);
         lowPassFrequencySlider.setEnabled(lowPassFilterEnabledButton.getToggleState());
     }
-    /*
-    else if (button == &squareWaveButton)
-    {
-        getProcessor()->setParameterNotifyingHost (AudioPluginAudioProcessor::waveTypeParam, 1.0);
-    }
-    else if (button == &triangleWaveButton)
-    {
-        getProcessor()->setParameterNotifyingHost (AudioPluginAudioProcessor::waveTypeParam, 2.0);
-    }
-    else if (button == &sawToothWaveButton)
-    {
-        getProcessor()->setParameterNotifyingHost (AudioPluginAudioProcessor::waveTypeParam, 3.0);
-    }
-    else if (button == &FMWaveButton)
-    {
-        getProcessor()->setParameterNotifyingHost (AudioPluginAudioProcessor::waveTypeParam, 4.0);
-    }
-    else if (button == &AMWaveButton)
-    {
-        getProcessor()->setParameterNotifyingHost (AudioPluginAudioProcessor::waveTypeParam, 5.0);
-    }
-    else if (button == &FMixWaveButton)
-    {
-        getProcessor()->setParameterNotifyingHost (AudioPluginAudioProcessor::waveTypeParam, 6.0);
-    }*/
     else
     {
         jassertfalse;

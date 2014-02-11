@@ -13,7 +13,7 @@
 
 const float defaultGain = 1.0f;
 const float defaultDelay = 0.0f;
-const float defaultLowPassFrequency = 220.0f;
+const float defaultLowPassFrequency = 0.0f;
 const bool defaultDelayEnabledFlag = false;
 const bool defaultDelayFeedBackEnabledFlag = false;
 const bool defaultLowPassFilterEnabledFlag = false;
@@ -207,7 +207,8 @@ void FilterAudioProcessor::reset()
 void FilterAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& midiMessages)
 {
     const int numSamples = buffer.getNumSamples();
-    int channel, dp = 0, lPP = 0, angleToFilter = 0;
+    int channel, dp = 0, lPP = 0;
+    double angleToFilter = 0.0l;
     
     // Go through the incoming data, and apply our gain to it...
     for (channel = 0; channel < getNumInputChannels(); ++channel)
@@ -222,7 +223,7 @@ void FilterAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& 
         
         dp = delayPosition;
         lPP = lowPassPosition;
-        angleToFilter = double_Pi * 2 / getSampleRate() * lowPassFrequency;
+        angleToFilter = double_Pi * 2.0 * 440.0l * pow(2.0, lowPassFrequency / 12.0) / 44100.0l;
         
         for (int i = 0; i < numSamples; ++i)
         {
