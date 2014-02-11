@@ -17,7 +17,8 @@ const bool defaultLowPassFilterEnabledFlag = false;
 
 //==============================================================================
 FilterAudioProcessor::FilterAudioProcessor()
-    : lowPassBuffer(2, 10)
+    : lowPassBuffer(2, 10),
+      inputBuffer(2, 10)
 {
     // Set up some default values..
     gain = defaultGain;
@@ -174,6 +175,7 @@ void FilterAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
     lowPassBuffer.clear();
+    inputBuffer.clear();
 }
 
 void FilterAudioProcessor::releaseResources()
@@ -187,6 +189,7 @@ void FilterAudioProcessor::reset()
     // Use this method as the place to clear any delay lines, buffers, etc, as it
     // means there's been a break in the audio's continuity.
     lowPassBuffer.clear();
+    inputBuffer.clear();
 }
 
 void FilterAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& midiMessages)
@@ -202,10 +205,14 @@ void FilterAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& 
         zPoles[i] = (1.0f + cTemp / 2.0f) / (1.0f - cTemp / 2.0f);
     }
     
+    
     coeffients[0] = zPoles[0] + zPoles[1] + zPoles[2] + zPoles[3];
-    coeffients[1] = zPoles[0] * zPoles[1] + zPoles[0] * zPoles[2] + zPoles[0] * zPoles[3] + zPoles[1] * zPoles[2] + zPoles[1] * zPoles[3] + zPoles[2] * zPoles[3];
-    coeffients[2] = - zPoles[0] * zPoles[1] * zPoles[2] - zPoles[0] * zPoles[1] * zPoles[3] - zPoles[0] * zPoles[2] * zPoles[3] - zPoles[1] * zPoles[2] * zPoles[3];
-    coeffients[3] = zPoles[0] * zPoles[1] * zPoles[2] * zPoles[3];
+    coeffients[1] = -zPoles[0] * zPoles[1] - zPoles[0] * zPoles[2] - zPoles[0] * zPoles[3] - zPoles[1] * zPoles[2] - zPoles[1] * zPoles[3] - zPoles[2] * zPoles[3];
+    coeffients[2] = zPoles[0] * zPoles[1] * zPoles[2] + zPoles[0] * zPoles[1] * zPoles[3] + zPoles[0] * zPoles[2] * zPoles[3] + zPoles[1] * zPoles[2] * zPoles[3];
+    coeffients[3] = - zPoles[0] * zPoles[1] * zPoles[2] * zPoles[3];
+    
+    gain = coeffients[3].real();
+    lowPassFrequency = coeffients[3].imag();
     
     // Go through the incoming data, and apply our gain to it...
     for (channel = 0; channel < getNumInputChannels(); ++channel)
@@ -216,32 +223,50 @@ void FilterAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& 
     {
         float* channelData = buffer.getSampleData (channel);
         float* lowPassData = lowPassBuffer.getSampleData(jmin(channel, lowPassBuffer.getNumChannels()));
-        
+        float* pastInputData = inputBuffer.getSampleData(jmin(channel, inputBuffer.getNumChannels()));
+        std::complex<float> pastOutputTemp;
+        float pastInputTemp;
+    
         lPP = lowPassPosition;
         
         if (lowPassFilterEnabledFlag) {
             for (int i = 0; i < numSamples; ++i) {
-                const float in = channelData[i];
+                pastInputData[lPP] = channelData[i];
 
                 if (lPP >= 4) {
-                    channelData[i] = lowPassData[lPP] = abs(in - coeffients[0] * lowPassData[lPP - 1] - coeffients[1] * lowPassData[lPP - 2] - coeffients[2] * lowPassData[lPP - 3] - coeffients[3] * lowPassData[lPP - 4]);
+                    pastInputTemp = pastInputData[lPP] + 4 * pastInputData[lPP - 1] + 6 * pastInputData[lPP - 2] + 4 * pastInputData[lPP - 3] + pastInputData[lPP - 4];
+                    
+                    pastOutputTemp = coeffients[0] * lowPassData[lPP - 1] + coeffients[1] * lowPassData[lPP - 2] + coeffients[2] * lowPassData[lPP - 3] + coeffients[3] * lowPassData[lPP - 4];
                 }
                 // Simple edge case
                 else if (lPP == 3) {
-                    channelData[i] = lowPassData[lPP] = abs(in - coeffients[0] * lowPassData[lPP - 1] - coeffients[1] * lowPassData[lPP - 2] - coeffients[2] * lowPassData[lPP - 3] - coeffients[3] * lowPassData[lowPassBuffer.getNumSamples() - 1]);
+                    pastInputTemp = pastInputData[lPP] + 4 * pastInputData[lPP - 1] + 6 * pastInputData[lPP - 2] + 4 * pastInputData[lPP - 3] + pastInputData[lowPassBuffer.getNumSamples() - 1];
+                    
+                    pastOutputTemp = coeffients[0] * lowPassData[lPP - 1] + coeffients[1] * lowPassData[lPP - 2] + coeffients[2] * lowPassData[lPP - 3] + coeffients[3] * lowPassData[lowPassBuffer.getNumSamples() - 1];
                 }
                 else if (lPP == 2) {
-                    channelData[i] = lowPassData[lPP] = abs(in - coeffients[0] * lowPassData[lPP - 1] - coeffients[1] * lowPassData[lPP - 2] - coeffients[2] * lowPassData[lowPassBuffer.getNumSamples() - 1] - coeffients[3] * lowPassData[lowPassBuffer.getNumSamples() - 2]);
+                    pastInputTemp = pastInputData[lPP] + 4 * pastInputData[lPP - 1] + 6 * pastInputData[lPP - 2] + 4 * pastInputData[lowPassBuffer.getNumSamples() - 1] + pastInputData[lowPassBuffer.getNumSamples() - 2];
+                    
+                    pastOutputTemp = coeffients[0] * lowPassData[lPP - 1] + coeffients[1] * lowPassData[lPP - 2] + coeffients[2] * lowPassData[lowPassBuffer.getNumSamples() - 1] + coeffients[3] * lowPassData[lowPassBuffer.getNumSamples() - 2];
                 }
                 else if (lPP == 1) {
-                    channelData[i] = lowPassData[lPP] = abs(in - coeffients[0] * lowPassData[lPP - 1] - coeffients[1] * lowPassData[lowPassBuffer.getNumSamples() - 1] - coeffients[2] * lowPassData[lowPassBuffer.getNumSamples() - 2] - coeffients[3] * lowPassData[lowPassBuffer.getNumSamples() - 3]);
+                    pastInputTemp = pastInputData[lPP] + 4 * pastInputData[lPP - 1] + 6 * pastInputData[lowPassBuffer.getNumSamples() - 1] + 4 * pastInputData[lowPassBuffer.getNumSamples() - 2] + pastInputData[lowPassBuffer.getNumSamples() - 3];
+                    
+                    pastOutputTemp = coeffients[0] * lowPassData[lPP - 1] + coeffients[1] * lowPassData[lowPassBuffer.getNumSamples() - 1] + coeffients[2] * lowPassData[lowPassBuffer.getNumSamples() - 2] + coeffients[3] * lowPassData[lowPassBuffer.getNumSamples() - 3];
                 }
                 else if (lPP == 0) {
-                    channelData[i] = lowPassData[lPP] = abs(in - coeffients[0] * lowPassData[lowPassBuffer.getNumSamples() - 1] - coeffients[1] * lowPassData[lowPassBuffer.getNumSamples() - 2] - coeffients[2] * lowPassData[lowPassBuffer.getNumSamples() - 3] - coeffients[3] * lowPassData[lowPassBuffer.getNumSamples() - 4]);
+                    pastInputTemp = pastInputData[lPP] + 4 * pastInputData[lowPassBuffer.getNumSamples() - 1] + 6 * pastInputData[lowPassBuffer.getNumSamples() - 2] + 4 * pastInputData[lowPassBuffer.getNumSamples() - 3] + pastInputData[lowPassBuffer.getNumSamples() - 4];
+
+                    pastOutputTemp = coeffients[0] * lowPassData[lowPassBuffer.getNumSamples() - 1] + coeffients[1] * lowPassData[lowPassBuffer.getNumSamples() - 2] + coeffients[2] * lowPassData[lowPassBuffer.getNumSamples() - 3] + coeffients[3] * lowPassData[lowPassBuffer.getNumSamples() - 4];
                 }
                 else {
                     assert(false);
                 }
+                // This is with the input feedback per the Filter Design Results website
+//                channelData[i] = lowPassData[lPP] = pastInputTemp + pastOutputTemp.real();
+                // This is with the coefficients from class
+                channelData[i] = lowPassData[lPP] = pastOutputTemp.real();
+
                 
                 if (++lPP >= lowPassBuffer.getNumSamples()) {
                     lPP = 0;

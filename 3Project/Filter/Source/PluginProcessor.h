@@ -16,7 +16,7 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 #include <complex.h>
-
+#include<iostream>
 
 //==============================================================================
 /**
@@ -101,7 +101,7 @@ public:
     
 private:
     //==============================================================================
-    AudioSampleBuffer lowPassBuffer;
+    AudioSampleBuffer lowPassBuffer, inputBuffer;
     int lowPassPosition;
     std::complex<float> chebyshevPoles[NUMBER_OF_POLES];
     std::complex<float> zPoles[NUMBER_OF_POLES];
