@@ -26,13 +26,13 @@ FilterAudioProcessorEditor::FilterAudioProcessorEditor (FilterAudioProcessor* ow
     addAndMakeVisible (gainSlider);
     gainSlider.setSliderStyle (Slider::Rotary);
     gainSlider.addListener (this);
-    gainSlider.setRange (-20, 20, 0.0001);
+    gainSlider.setRange (0, 1, 0.01);
     
     addAndMakeVisible (lowPassFrequencySlider);
     lowPassFrequencySlider.setSliderStyle (Slider::Rotary);
     lowPassFrequencySlider.addListener (this);
     lowPassFrequencySlider.setEnabled(false);
-    lowPassFrequencySlider.setRange (-20, 20, .0001);
+    lowPassFrequencySlider.setRange (0, 2000, 1);
     
     // add some labels for the sliders..
     gainLabel.attachToComponent (&gainSlider, false);

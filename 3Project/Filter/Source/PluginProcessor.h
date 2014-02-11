@@ -34,6 +34,12 @@ public:
 
     void processBlock (AudioSampleBuffer& buffer, MidiBuffer& midiMessages);
 
+    
+    void zPoleFilter(float angleToFilter, float *lowPassData, float* channelData, float* pastInputData, int numSamples);
+    void chebyshevFilter(float angleToFilter, float* lowPassData, float* channelData, float* pastInputData, int numSamples);
+    void calculateCoefficients(float angleToFilter, std::complex<float> coefficients[]);
+
+    
     void reset() override;
     //==============================================================================
     AudioProcessorEditor* createEditor();
@@ -104,7 +110,6 @@ private:
     AudioSampleBuffer lowPassBuffer, inputBuffer;
     int lowPassPosition;
     std::complex<float> chebyshevPoles[NUMBER_OF_POLES];
-    std::complex<float> zPoles[NUMBER_OF_POLES];
     const std::complex<float> I = std::complex<float>(0.0, 1.0);
     
 
