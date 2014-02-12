@@ -12,13 +12,13 @@
 #include "PluginEditor.h"
 
 const float defaultGain = 1.0f;
-const float defaultLowPassFrequency = 0.0f;
+const float defaultLowPassFrequency = 440.0f;
 const bool defaultLowPassFilterEnabledFlag = false;
 
 //==============================================================================
 FilterAudioProcessor::FilterAudioProcessor()
-    : lowPassBuffer(2, 4),
-      inputBuffer(2, 4)
+    : lowPassBuffer(2, 100000),
+      inputBuffer(2, 100000)
 {
     // Set up some default values..
     gain = defaultGain;
@@ -196,11 +196,12 @@ void FilterAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& 
 {
     const int numSamples = buffer.getNumSamples();
     int channel;
-    float angleToFilter = double_Pi * 2.0 / getSampleRate() * lowPassFrequency;
+//    float angleToFilter = double_Pi * 2.0 / getSampleRate() * lowPassFrequency;
+    float angleToFilter = double_Pi * 2.0 / getSampleRate() * 440.0f;
 
     // Go through the incoming data, and apply our gain to it...
     for (channel = 0; channel < getNumInputChannels(); ++channel)
-        buffer.applyGain (channel, 0, buffer.getNumSamples(), gain);
+    buffer.applyGain (channel, 0, buffer.getNumSamples(), gain);
     
     // Apply low pass filter
     for (channel = 0; channel < getNumInputChannels(); ++channel)
@@ -266,13 +267,13 @@ void FilterAudioProcessor::zPoleFilter(float angleToFilter, float *lowPassData, 
 void FilterAudioProcessor::chebyshevFilter(float angleToFilter, float* lowPassData, float* channelData, float* pastInputData, int numSamples) {
     std::complex<float> pastOutputTemp;
     float pastInputTemp;
-    std::complex<float> coefficients[NUMBER_OF_POLES];
+    float coefficients[NUMBER_OF_POLES];
     int lPP = lowPassPosition;
     
     calculateCoefficients(angleToFilter, coefficients);
     
     for (int i = 0; i < numSamples; ++i) {
-        pastInputData[lPP] = channelData[i] / 3818784.0f;
+        pastInputData[lPP] = channelData[i];
         
         if (lPP >= 4) {
             pastInputTemp = pastInputData[lPP] + 4 * pastInputData[lPP - 1] + 6 * pastInputData[lPP - 2] + 4 * pastInputData[lPP - 3] + pastInputData[lPP - 4];
@@ -305,7 +306,12 @@ void FilterAudioProcessor::chebyshevFilter(float angleToFilter, float* lowPassDa
         }
 
         // This is with the input feedback per the Filter Design Results website
-        channelData[i] = lowPassData[lPP] = pastInputTemp / 16 + pastOutputTemp.real() / coefficients[0].real() / coefficients[1].real() / coefficients[2].real() / coefficients[3].real();
+        
+//        if (lPP > 5) {
+//            lowPassFrequency = pastInputTemp;
+//            gain = pastOutputTemp.real();
+//        }
+        channelData[i] = lowPassData[lPP] = pastInputTemp - pastOutputTemp.real();
         // This is with the coefficients from class
         //channelData[i] = lowPassData[lPP] = pastInputData[lPP] + pastOutputTemp.real();
         
@@ -318,18 +324,23 @@ void FilterAudioProcessor::chebyshevFilter(float angleToFilter, float* lowPassDa
     lowPassPosition = lPP;
 }
 
-void FilterAudioProcessor::calculateCoefficients(float angleToFilter, std::complex<float> coefficients[]) {
+void FilterAudioProcessor::calculateCoefficients(float angleToFilter, float coefficients[]) {
     std::complex<float> zPoles[NUMBER_OF_POLES];
 
     for (int i = 0; i < NUMBER_OF_POLES; i++) {
         std::complex<float> cTemp = angleToFilter * chebyshevPoles[i];
         zPoles[i] = (1.0f + cTemp / 2.0f) / (1.0f - cTemp / 2.0f);
     }
-    
-    coefficients[0] = zPoles[0] + zPoles[1] + zPoles[2] + zPoles[3];
-    coefficients[1] = -zPoles[0] * zPoles[1] - zPoles[0] * zPoles[2] - zPoles[0] * zPoles[3] - zPoles[1] * zPoles[2] - zPoles[1] * zPoles[3] - zPoles[2] * zPoles[3];
-    coefficients[2] = zPoles[0] * zPoles[1] * zPoles[2] + zPoles[0] * zPoles[1] * zPoles[3] + zPoles[0] * zPoles[2] * zPoles[3] + zPoles[1] * zPoles[2] * zPoles[3];
-    coefficients[3] = - zPoles[0] * zPoles[1] * zPoles[2] * zPoles[3];
+
+    coefficients[0] = .9413766576f;
+    coefficients[1] = 3.8186361645f;
+    coefficients[2] = -5.8129662985f;
+    coefficients[3] = 3.9357026018f;
+
+//    coefficients[0] = ((-zPoles[0]) + (-zPoles[1]) + (-zPoles[2]) + (-zPoles[3])).real();
+//    coefficients[1] = ((-zPoles[0]) * (-zPoles[1]) + (-zPoles[0]) * (-zPoles[2]) + (-zPoles[0]) * (-zPoles[3]) + (-zPoles[1]) * (-zPoles[2]) + (-zPoles[1]) * (-zPoles[3]) + (-zPoles[2]) * (-zPoles[3])).real();
+//    coefficients[2] = ((-zPoles[0]) * (-zPoles[1]) * (-zPoles[2]) + (-zPoles[0]) * (-zPoles[1]) * (-zPoles[3]) + (-zPoles[0]) * (-zPoles[2]) * (-zPoles[3]) + (-zPoles[1]) * (-zPoles[2]) * (-zPoles[3])).real();
+//    coefficients[3] = ((-zPoles[0]) * (-zPoles[1]) * (-zPoles[2]) * (-zPoles[3])).real();
 }
 
 //==============================================================================

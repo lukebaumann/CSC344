@@ -37,7 +37,7 @@ public:
     
     void zPoleFilter(float angleToFilter, float *lowPassData, float* channelData, float* pastInputData, int numSamples);
     void chebyshevFilter(float angleToFilter, float* lowPassData, float* channelData, float* pastInputData, int numSamples);
-    void calculateCoefficients(float angleToFilter, std::complex<float> coefficients[]);
+    void calculateCoefficients(float angleToFilter, float coefficients[]);
 
     
     void reset() override;
