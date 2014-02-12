@@ -255,16 +255,18 @@ void FilterAudioProcessor::zPoleFilter(float angleToFilter, float *lowPassData, 
 void FilterAudioProcessor::chebyshevFilter(float angleToFilter, AudioSampleBuffer &buffer, int channel) {
     float pastOutputTemp;
     float pastInputTemp;
+    std::complex<float> zPoles[NUMBER_OF_POLES];
     float bottomCoefficients[NUMBER_OF_POLES + 1];
     float topCoefficients[NUMBER_OF_POLES + 1];
     int lPP = lowPassPosition, numSamples = buffer.getNumSamples();
 
+    calculateZPoles(angleToFilter, zPoles);
     calculateTopCoefficients(topCoefficients);
-    calculateBottomCoefficients(angleToFilter, bottomCoefficients);
+    calculateBottomCoefficients(angleToFilter, zPoles, bottomCoefficients);
     
-    float gain = calculateDCGain(topCoefficients, bottomCoefficients);
-
-    buffer.applyGain (channel, 0, buffer.getNumSamples(), 1 / gain);
+    float gain = calculateDCGain(zPoles, topCoefficients);
+    
+    buffer.applyGain (channel, 0, buffer.getNumSamples(), 1.0 / gain);
 
     float* channelData = buffer.getSampleData (channel);
     float* lowPassData = lowPassBuffer.getSampleData(jmin(channel, lowPassBuffer.getNumChannels()));
@@ -304,15 +306,7 @@ void FilterAudioProcessor::chebyshevFilter(float angleToFilter, AudioSampleBuffe
             assert(false);
         }
 
-        // This is with the input feedback per the Filter Design Results website
-        
-//        if (lPP > 5) {
-//            lowPassFrequency = pastInputTemp;
-//        }
         channelData[i] = lowPassData[lPP] = pastInputTemp - pastOutputTemp;
-        // This is with the coefficients from class
-        //channelData[i] = lowPassData[lPP] = pastInputData[lPP] + pastOutputTemp;
-        
         
         if (++lPP >= lowPassBuffer.getNumSamples()) {
             lPP = 0;
@@ -327,16 +321,17 @@ void FilterAudioProcessor::calculateTopCoefficients(float coefficients[]) {
     coefficients[1] = 4;
     coefficients[2] = 6;
     coefficients[3] = 4;
-    coefficients[3] = 1;
+    coefficients[4] = 1;
 }
 
-void FilterAudioProcessor::calculateBottomCoefficients(float angleToFilter, float coefficients[]) {
-    std::complex<float> zPoles[NUMBER_OF_POLES];
-    
+void FilterAudioProcessor::calculateZPoles(float angleToFilter, std::complex<float> zPoles[]) {
     for (int i = 0; i < NUMBER_OF_POLES; i++) {
         std::complex<float> cTemp = angleToFilter * chebyshevPoles[i];
         zPoles[i] = (1.0f + cTemp / 2.0f) / (1.0f - cTemp / 2.0f);
     }
+}
+
+void FilterAudioProcessor::calculateBottomCoefficients(float angleToFilter, std::complex<float> zPoles[], float coefficients[]) {
     
     // coefficients[0] = 0 for indexing sanity
     coefficients[0] = 0;
@@ -357,17 +352,17 @@ void FilterAudioProcessor::calculateBottomCoefficients(float angleToFilter, floa
     coefficients[4] = ((-zPoles[0]) * (-zPoles[1]) * (-zPoles[2]) * (-zPoles[3])).real();
 }
 
-float FilterAudioProcessor::calculateDCGain(float topCoefficients[], float bottomCoefficients[]) {
+float FilterAudioProcessor::calculateDCGain(std::complex<float> zPoles[], float topCoefficients[]) {
     float tempTop = 0.0f;
-    float tempBottom = 0.0f;
+    std::complex<float> tempBottom = 1.0f;
     
     // DC is at z = 1 + 0j
     for (int i = 0; i < NUMBER_OF_POLES + 1; i++) {
-        tempTop *= (1 - topCoefficients[i]);
-        tempBottom *= (1 - bottomCoefficients[i]);
+        tempTop += topCoefficients[i];
+        tempBottom *= (1.0f - zPoles[i]);
     }
-    
-    return tempTop / tempBottom;
+
+    return abs(tempTop / tempBottom);
 }
 
 
