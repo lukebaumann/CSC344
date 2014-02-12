@@ -102,6 +102,7 @@ public:
         totalNumParams
     };
     
+    // For some reason, I cannot go lower than 183 Hz. Overshooting the minimum so I am never close
     float lowPassFrequency;
     bool lowPassFilterEnabledFlag;
     
