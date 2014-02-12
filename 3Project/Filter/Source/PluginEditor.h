@@ -36,8 +36,8 @@ public:
     void buttonClicked (Button*) override;
     
 private:
-    Label infoLabel, gainLabel, lowPassFrequencyLabel;
-    Slider gainSlider, lowPassFrequencySlider;
+    Label infoLabel, lowPassFrequencyLabel;
+    Slider lowPassFrequencySlider;
     ToggleButton lowPassFilterEnabledButton;
 
  ScopedPointer<ResizableCornerComponent> resizer;

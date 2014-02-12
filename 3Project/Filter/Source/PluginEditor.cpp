@@ -16,27 +16,16 @@
 FilterAudioProcessorEditor::FilterAudioProcessorEditor (FilterAudioProcessor* ownerFilter)
     : AudioProcessorEditor (ownerFilter),
       infoLabel (String::empty),
-      gainLabel ("", "Throughput level:"),
       lowPassFrequencyLabel("", "Low Pass Frequency:"),
-      gainSlider ("gain"),
       lowPassFrequencySlider("lowPassFrequency"),
       lowPassFilterEnabledButton("lowPassFilterEnabled")
 {
     // add some sliders..
-    addAndMakeVisible (gainSlider);
-    gainSlider.setSliderStyle (Slider::Rotary);
-    gainSlider.addListener (this);
-    gainSlider.setRange (-2000, 2000, 0.0001);
-    
     addAndMakeVisible (lowPassFrequencySlider);
     lowPassFrequencySlider.setSliderStyle (Slider::Rotary);
     lowPassFrequencySlider.addListener (this);
     lowPassFrequencySlider.setEnabled(false);
-    lowPassFrequencySlider.setRange (-2000, 2000, .0001);
-    
-    // add some labels for the sliders..
-    gainLabel.attachToComponent (&gainSlider, false);
-    gainLabel.setFont (Font (11.0f));
+    lowPassFrequencySlider.setRange (0, 2000, 1);
     
     lowPassFrequencyLabel.attachToComponent (&lowPassFrequencySlider, false);
     lowPassFrequencyLabel.setFont (Font (11.0f));
@@ -77,9 +66,8 @@ void FilterAudioProcessorEditor::paint (Graphics& g)
 void FilterAudioProcessorEditor::resized()
 {
     infoLabel.setBounds (10, 4, 400, 25);
-    gainSlider.setBounds (20, 60, 150, 40);
-    lowPassFilterEnabledButton.setBounds(20, 150, 100, 20);
-    lowPassFrequencySlider.setBounds(200, 150, 150, 40);
+    lowPassFilterEnabledButton.setBounds(20, 60, 100, 20);
+    lowPassFrequencySlider.setBounds(200, 60, 150, 40);
 
     resizer->setBounds (getWidth() - 16, getHeight() - 16, 16, 16);
     
@@ -98,8 +86,7 @@ void FilterAudioProcessorEditor::timerCallback()
     
     if (lastDisplayedPosition != newPos)
         displayPositionInfo (newPos);
-    
-    gainSlider.setValue (ourProcessor->getParameter(FilterAudioProcessor::gainParam), dontSendNotification);
+
     lowPassFrequencySlider.setValue (ourProcessor->getParameter(FilterAudioProcessor::lowPassFrequencyParam), dontSendNotification);
     lowPassFilterEnabledButton.setToggleState(ourProcessor->getParameter(FilterAudioProcessor::lowPassFilterEnabledParam) > 0.5f, dontSendNotification);
 }
@@ -108,15 +95,7 @@ void FilterAudioProcessorEditor::timerCallback()
 // This is our Slider::Listener callback, when the user drags a slider.
 void FilterAudioProcessorEditor::sliderValueChanged (Slider* slider)
 {
-    if (slider == &gainSlider)
-    {
-        // It's vital to use setParameterNotifyingHost to change any parameters that are automatable
-        // by the host, rather than just modifying them directly, otherwise the host won't know
-        // that they've changed.
-        getProcessor()->setParameterNotifyingHost (FilterAudioProcessor::gainParam,
-                                                   (float) gainSlider.getValue());
-    }
-    else if (slider == &lowPassFrequencySlider)
+    if (slider == &lowPassFrequencySlider)
     {
         getProcessor()->setParameterNotifyingHost (FilterAudioProcessor::lowPassFrequencyParam,
                                                    (float) lowPassFrequencySlider.getValue());
