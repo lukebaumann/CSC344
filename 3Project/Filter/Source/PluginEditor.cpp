@@ -24,8 +24,8 @@ FilterAudioProcessorEditor::FilterAudioProcessorEditor (FilterAudioProcessor* ow
     addAndMakeVisible (lowPassFrequencySlider);
     lowPassFrequencySlider.setSliderStyle (Slider::Rotary);
     lowPassFrequencySlider.addListener (this);
-    lowPassFrequencySlider.setEnabled(false);
-    lowPassFrequencySlider.setRange (0, 2000, 1);
+    lowPassFrequencySlider.setEnabled(true);
+    lowPassFrequencySlider.setRange (183, 20000, 1);
     
     lowPassFrequencyLabel.attachToComponent (&lowPassFrequencySlider, false);
     lowPassFrequencyLabel.setFont (Font (11.0f));
@@ -88,7 +88,6 @@ void FilterAudioProcessorEditor::timerCallback()
         displayPositionInfo (newPos);
 
     lowPassFrequencySlider.setValue (ourProcessor->getParameter(FilterAudioProcessor::lowPassFrequencyParam), dontSendNotification);
-    lowPassFilterEnabledButton.setToggleState(ourProcessor->getParameter(FilterAudioProcessor::lowPassFilterEnabledParam) > 0.5f, dontSendNotification);
 }
 
 
@@ -113,7 +112,6 @@ void FilterAudioProcessorEditor::buttonClicked(Button* button)
         // by the host, rather than just modifying them directly, otherwise the host won't know
         // that they've changed.
         getProcessor()->setParameterNotifyingHost (FilterAudioProcessor::lowPassFilterEnabledParam, lowPassFilterEnabledButton.getToggleState() ? 1.0f : 0.0f);
-        lowPassFrequencySlider.setEnabled(lowPassFilterEnabledButton.getToggleState());
     }
     else
     {

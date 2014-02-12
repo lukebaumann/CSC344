@@ -287,7 +287,7 @@ private:
 };
 
 const float defaultGain = 1.0f;
-const float defaultDelay = 0.5f;
+const float defaultDelay = 0.0f;
 const float defaultWaveType = 0.0f;
 
 //==============================================================================

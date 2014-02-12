@@ -32,7 +32,7 @@ FilterAudioProcessorEditor::FilterAudioProcessorEditor (FilterAudioProcessor* ow
     addAndMakeVisible (delaySlider);
     delaySlider.setSliderStyle (Slider::Rotary);
     delaySlider.addListener (this);
-    delaySlider.setEnabled(false);
+    delaySlider.setEnabled(true);
     delaySlider.setRange (0.0, 1.0, 0.01);
 
     // add some labels for the sliders..
@@ -142,8 +142,6 @@ void FilterAudioProcessorEditor::buttonClicked(Button* button)
         // by the host, rather than just modifying them directly, otherwise the host won't know
         // that they've changed.
         getProcessor()->setParameterNotifyingHost (FilterAudioProcessor::delayEnabledParam, delayEnabledButton.getToggleState() ? 1.0f : 0.0f);
-        delayFeedBackEnabledButton.setEnabled(delayEnabledButton.getToggleState());
-        delaySlider.setEnabled(delayEnabledButton.getToggleState());
     }
     else if (button == &delayFeedBackEnabledButton)
     {
