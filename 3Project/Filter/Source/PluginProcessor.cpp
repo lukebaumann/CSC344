@@ -190,7 +190,8 @@ void FilterAudioProcessor::reset()
 void FilterAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& midiMessages)
 {
     int channel;
-    float angleToFilter = double_Pi * 2.0 / getSampleRate() * 200 * pow(2.0f, lowPassFrequency / 12);
+    // Min(197 * pow(2.0f, lowPassFrequency / 12)) = 208 Hz, Max( 197 * pow(2.0f, lowPassFrequency / 12)) = 20014Hz
+    float angleToFilter = double_Pi * 2.0 / getSampleRate() * 197 * pow(2.0f, lowPassFrequency / 12);
 
     // Go through the incoming data, and apply our gain to it...
     for (channel = 0; channel < getNumInputChannels(); ++channel)
