@@ -9,7 +9,7 @@
               pluginEditorRequiresKeys="0" pluginAUExportPrefix="HighPassFilterAU"
               pluginRTASCategory="" aaxIdentifier="com.lyfewithluke.HighPassFilter"
               pluginAAXCategory="AAX_ePlugInCategory_Dynamics" jucerVersion="3.1.0"
-              companyName="Luke Corp">
+              companyName="lyfewithluke">
   <MAINGROUP id="ybHEHC" name="High Pass Filter">
     <GROUP id="{9AA69C1F-6E2C-7C5F-D8A1-535D9C974A8B}" name="Source">
       <FILE id="lzK8ni" name="PluginProcessor.cpp" compile="1" resource="0"
