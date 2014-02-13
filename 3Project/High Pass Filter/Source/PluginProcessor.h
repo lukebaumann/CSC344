@@ -38,9 +38,11 @@ public:
     void zPoleFilter(float angleToFilter, float *highPassData, float* channelData, float* pastInputData, int numSamples);
     void chebyshevFilter(float angleToFilter, AudioSampleBuffer &buffer, int channel);
     void calculateZPoles(float angleToFilter, std::complex<float> zPoles[]);
+    void calculateZZeros(std::complex<float> zZeros[]);
     void calculateTopCoefficients(float coefficients[]);
     void calculateBottomCoefficients(float angleToFilter, std::complex<float> zPoles[], float coefficients[]);
-    float calculateDCGain(float topCoefficients[], float bottomCoefficients[]);
+    float calculateGain(std::complex<float> frequency, std::complex<float> zPoles[], std::complex<float> zZeros[]);
+    float calculateDCGain(std::complex<float> zPoles[], std::complex<float> zZeros[]);
 
     void reset() override;
     //==============================================================================
@@ -96,15 +98,15 @@ public:
     //==============================================================================
     enum Parameters
     {
-        highPassFrequencyParam = 0,
-        highPassFilterEnabledParam,
+        HighPassFrequencyParam = 0,
+        HighPassFilterEnabledParam,
         
         totalNumParams
     };
     
-    // For some reason, I cannot go lower than 183 Hz. Overshooting the minimum so I am never close
-    float highPassFrequency;
-    bool highPassFilterEnabledFlag;
+    // For some reason, I cannot go higher than 183 Hz. Overshooting the minimum so I am never close
+    float HighPassFrequency;
+    bool HighPassFilterEnabledFlag;
     
 private:
     //==============================================================================

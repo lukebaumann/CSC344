@@ -11,8 +11,8 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
-const float defaulthighPassFrequency = 440.0f;
-const bool defaulthighPassFilterEnabledFlag = false;
+const float defaultHighPassFrequency = 440.0f;
+const bool defaultHighPassFilterEnabledFlag = false;
 
 //==============================================================================
 HighPassFilterAudioProcessor::HighPassFilterAudioProcessor()
@@ -20,8 +20,8 @@ HighPassFilterAudioProcessor::HighPassFilterAudioProcessor()
       inputBuffer(2, 4)
 {
     // Set up some default values..
-    highPassFrequency = defaulthighPassFrequency;
-    highPassFilterEnabledFlag = defaulthighPassFilterEnabledFlag;
+    HighPassFrequency = defaultHighPassFrequency;
+    HighPassFilterEnabledFlag = defaultHighPassFilterEnabledFlag;
     
     for (int iter = 0; iter < NUMBER_OF_POLES; iter++) {
         chebyshevPoles[iter] = I * cos(1.0f / NUMBER_OF_POLES * acos(I / 0.5f) + iter * float_Pi / NUMBER_OF_POLES);
@@ -56,8 +56,8 @@ float HighPassFilterAudioProcessor::getParameter (int index)
     // UI-related, or anything at all that may block in any way!
     switch (index)
     {
-        case highPassFrequencyParam:     return highPassFrequency;
-        case highPassFilterEnabledParam: return highPassFilterEnabledFlag ? 1.0f : 0.0f;
+        case HighPassFrequencyParam:     return HighPassFrequency;
+        case HighPassFilterEnabledParam: return HighPassFilterEnabledFlag ? 1.0f : 0.0f;
 
         default:                        return 0.0f;
     }
@@ -70,8 +70,8 @@ void HighPassFilterAudioProcessor::setParameter (int index, float newValue)
     // UI-related, or anything at all that may block in any way!
     switch (index)
     {
-        case highPassFrequencyParam:     highPassFrequency = newValue;    break;
-        case highPassFilterEnabledParam: highPassFilterEnabledFlag = newValue > 0.5f; break;
+        case HighPassFrequencyParam:     HighPassFrequency = newValue;    break;
+        case HighPassFilterEnabledParam: HighPassFilterEnabledFlag = newValue > 0.5f; break;
         default:                        break;
     }
 }
@@ -80,8 +80,8 @@ const String HighPassFilterAudioProcessor::getParameterName (int index)
 {
     switch (index)
     {
-        case highPassFrequencyParam:     return "highPassFrequency";
-        case highPassFilterEnabledParam: return "highPassFilterEnabledFlag";
+        case HighPassFrequencyParam:     return "HighPassFrequency";
+        case HighPassFilterEnabledParam: return "HighPassFilterEnabledFlag";
         default:                        break;
     }
     
@@ -190,16 +190,16 @@ void HighPassFilterAudioProcessor::reset()
 void HighPassFilterAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& midiMessages)
 {
     int channel;
-    // Min(197 * pow(2.0f, highPassFrequency / 12)) = 208 Hz, Max( 197 * pow(2.0f, highPassFrequency / 12)) = 20014Hz
-    float angleToFilter = double_Pi * 2.0 / getSampleRate() * 197 * pow(2.0f, highPassFrequency / 12);
+    // Min(197 * pow(2.0f, HighPassFrequency / 12)) = 208 Hz, Max( 197 * pow(2.0f, HighPassFrequency / 12)) = 20014Hz
+    float angleToFilter = float_Pi * 2.0 / getSampleRate() * 197 * pow(2.0f, HighPassFrequency / 12);
 
     // Go through the incoming data, and apply our gain to it...
     for (channel = 0; channel < getNumInputChannels(); ++channel)
     
-    // Apply low pass filter
+    // Apply high pass filter
     for (channel = 0; channel < getNumInputChannels(); ++channel)
     {
-        if (highPassFilterEnabledFlag) {
+        if (HighPassFilterEnabledFlag) {
             chebyshevFilter(angleToFilter, buffer, channel);
         }
     }
@@ -225,47 +225,21 @@ void HighPassFilterAudioProcessor::processBlock (AudioSampleBuffer& buffer, Midi
     }
 }
 
-void HighPassFilterAudioProcessor::zPoleFilter(float angleToFilter, float *highPassData, float* channelData, float* pastInputData, int numSamples) {
- //z-Pole Simple low pass filter
-    int lPP = highPassPosition;
-    float in;
-    
-    for (int i = 0; i < numSamples; ++i) {
-        pastInputData[lPP] = channelData[i];
-        highPassData[lPP] = in;
-
-        if (lPP >= 2 && lPP < highPassBuffer.getNumSamples()) {
-            channelData[i] = highPassData[lPP] - 2 * cos(angleToFilter) * highPassData[lPP - 1] + highPassData[lPP - 2];
-        }
-        // Simple edge case
-        else if (lPP == 1) {
-            
-            channelData[i] = highPassData[lPP] - 2 * cos(angleToFilter) * highPassData[lPP - 1] + highPassData[highPassBuffer.getNumSamples() - 1];
-        }
-        else if (lPP == 0) {
-            channelData[i] = highPassData[lPP] - 2 * cos(angleToFilter) * highPassData[highPassBuffer.getNumSamples() - 1] + highPassData[highPassBuffer.getNumSamples() - 2];
-        }
-        if (++lPP >= highPassBuffer.getNumSamples()) {
-            lPP = 0;
-        }
-    }
-    
-    highPassPosition = lPP;
-}
-
 void HighPassFilterAudioProcessor::chebyshevFilter(float angleToFilter, AudioSampleBuffer &buffer, int channel) {
     float pastOutputTemp;
     float pastInputTemp;
     std::complex<float> zPoles[NUMBER_OF_POLES];
+    std::complex<float> zZeros[NUMBER_OF_POLES];
     float bottomCoefficients[NUMBER_OF_POLES + 1];
     float topCoefficients[NUMBER_OF_POLES + 1];
-    int lPP = highPassPosition, numSamples = buffer.getNumSamples();
+    int hPP = highPassPosition, numSamples = buffer.getNumSamples();
 
     calculateZPoles(angleToFilter, zPoles);
+    calculateZZeros(zZeros);
     calculateTopCoefficients(topCoefficients);
     calculateBottomCoefficients(angleToFilter, zPoles, bottomCoefficients);
     
-    float gain = calculateDCGain(topCoefficients, bottomCoefficients);
+    float gain = calculateDCGain(zPoles, zZeros);
     
     buffer.applyGain (channel, 0, buffer.getNumSamples(), 1.0 / gain);
 
@@ -275,31 +249,31 @@ void HighPassFilterAudioProcessor::chebyshevFilter(float angleToFilter, AudioSam
     
     
     for (int i = 0; i < numSamples; ++i) {
-        pastInputData[lPP] = channelData[i];
+        pastInputData[hPP] = channelData[i];
         
-        if (lPP >= 4) {
-            pastInputTemp = topCoefficients[0] * pastInputData[lPP] + topCoefficients[1] * pastInputData[lPP - 1] + topCoefficients[2] * pastInputData[lPP - 2] + topCoefficients[3] * pastInputData[lPP - 3] + topCoefficients[4] * pastInputData[lPP - 4];
+        if (hPP >= 4) {
+            pastInputTemp = topCoefficients[0] * pastInputData[hPP] + topCoefficients[1] * pastInputData[hPP - 1] + topCoefficients[2] * pastInputData[hPP - 2] + topCoefficients[3] * pastInputData[hPP - 3] + topCoefficients[4] * pastInputData[hPP - 4];
             
-            pastOutputTemp = bottomCoefficients[1] * highPassData[lPP - 1] + bottomCoefficients[2] * highPassData[lPP - 2] + bottomCoefficients[3] * highPassData[lPP - 3] + bottomCoefficients[4] * highPassData[lPP - 4];
+            pastOutputTemp = bottomCoefficients[1] * highPassData[hPP - 1] + bottomCoefficients[2] * highPassData[hPP - 2] + bottomCoefficients[3] * highPassData[hPP - 3] + bottomCoefficients[4] * highPassData[hPP - 4];
         }
         // Simple edge case
-        else if (lPP == 3) {
-            pastInputTemp = topCoefficients[0] * pastInputData[lPP] + topCoefficients[1] * pastInputData[lPP - 1] + topCoefficients[2] * pastInputData[lPP - 2] + topCoefficients[3] * pastInputData[lPP - 3] + topCoefficients[4] * pastInputData[highPassBuffer.getNumSamples() - 1];
+        else if (hPP == 3) {
+            pastInputTemp = topCoefficients[0] * pastInputData[hPP] + topCoefficients[1] * pastInputData[hPP - 1] + topCoefficients[2] * pastInputData[hPP - 2] + topCoefficients[3] * pastInputData[hPP - 3] + topCoefficients[4] * pastInputData[highPassBuffer.getNumSamples() - 1];
             
-            pastOutputTemp = bottomCoefficients[1] * highPassData[lPP - 1] + bottomCoefficients[2] * highPassData[lPP - 2] + bottomCoefficients[3] * highPassData[lPP - 3] + bottomCoefficients[4] * highPassData[highPassBuffer.getNumSamples() - 1];
+            pastOutputTemp = bottomCoefficients[1] * highPassData[hPP - 1] + bottomCoefficients[2] * highPassData[hPP - 2] + bottomCoefficients[3] * highPassData[hPP - 3] + bottomCoefficients[4] * highPassData[highPassBuffer.getNumSamples() - 1];
         }
-        else if (lPP == 2) {
-            pastInputTemp = topCoefficients[0] * pastInputData[lPP] + topCoefficients[1] * pastInputData[lPP - 1] + topCoefficients[2] * pastInputData[lPP - 2] + topCoefficients[3] * pastInputData[highPassBuffer.getNumSamples() - 1] + topCoefficients[4] * pastInputData[highPassBuffer.getNumSamples() - 2];
+        else if (hPP == 2) {
+            pastInputTemp = topCoefficients[0] * pastInputData[hPP] + topCoefficients[1] * pastInputData[hPP - 1] + topCoefficients[2] * pastInputData[hPP - 2] + topCoefficients[3] * pastInputData[highPassBuffer.getNumSamples() - 1] + topCoefficients[4] * pastInputData[highPassBuffer.getNumSamples() - 2];
             
-            pastOutputTemp = bottomCoefficients[1] * highPassData[lPP - 1] + bottomCoefficients[2] * highPassData[lPP - 2] + bottomCoefficients[3] * highPassData[highPassBuffer.getNumSamples() - 1] + bottomCoefficients[4] * highPassData[highPassBuffer.getNumSamples() - 2];
+            pastOutputTemp = bottomCoefficients[1] * highPassData[hPP - 1] + bottomCoefficients[2] * highPassData[hPP - 2] + bottomCoefficients[3] * highPassData[highPassBuffer.getNumSamples() - 1] + bottomCoefficients[4] * highPassData[highPassBuffer.getNumSamples() - 2];
         }
-        else if (lPP == 1) {
-            pastInputTemp = topCoefficients[0] * pastInputData[lPP] + topCoefficients[1] * pastInputData[lPP - 1] + topCoefficients[2] * pastInputData[highPassBuffer.getNumSamples() - 1] + topCoefficients[3] * pastInputData[highPassBuffer.getNumSamples() - 2] + topCoefficients[4] * pastInputData[highPassBuffer.getNumSamples() - 3];
+        else if (hPP == 1) {
+            pastInputTemp = topCoefficients[0] * pastInputData[hPP] + topCoefficients[1] * pastInputData[hPP - 1] + topCoefficients[2] * pastInputData[highPassBuffer.getNumSamples() - 1] + topCoefficients[3] * pastInputData[highPassBuffer.getNumSamples() - 2] + topCoefficients[4] * pastInputData[highPassBuffer.getNumSamples() - 3];
             
-            pastOutputTemp = bottomCoefficients[1] * highPassData[lPP - 1] + bottomCoefficients[2] * highPassData[highPassBuffer.getNumSamples() - 1] + bottomCoefficients[3] * highPassData[highPassBuffer.getNumSamples() - 2] + bottomCoefficients[4] * highPassData[highPassBuffer.getNumSamples() - 3];
+            pastOutputTemp = bottomCoefficients[1] * highPassData[hPP - 1] + bottomCoefficients[2] * highPassData[highPassBuffer.getNumSamples() - 1] + bottomCoefficients[3] * highPassData[highPassBuffer.getNumSamples() - 2] + bottomCoefficients[4] * highPassData[highPassBuffer.getNumSamples() - 3];
         }
-        else if (lPP == 0) {
-            pastInputTemp = topCoefficients[0] * pastInputData[lPP] + topCoefficients[1] * pastInputData[highPassBuffer.getNumSamples() - 1] + topCoefficients[2] * pastInputData[highPassBuffer.getNumSamples() - 2] + topCoefficients[3] * pastInputData[highPassBuffer.getNumSamples() - 3] + topCoefficients[4] * pastInputData[highPassBuffer.getNumSamples() - 4];
+        else if (hPP == 0) {
+            pastInputTemp = topCoefficients[0] * pastInputData[hPP] + topCoefficients[1] * pastInputData[highPassBuffer.getNumSamples() - 1] + topCoefficients[2] * pastInputData[highPassBuffer.getNumSamples() - 2] + topCoefficients[3] * pastInputData[highPassBuffer.getNumSamples() - 3] + topCoefficients[4] * pastInputData[highPassBuffer.getNumSamples() - 4];
             
             pastOutputTemp = bottomCoefficients[1] * highPassData[highPassBuffer.getNumSamples() - 1] + bottomCoefficients[2] * highPassData[highPassBuffer.getNumSamples() - 2] + bottomCoefficients[3] * highPassData[highPassBuffer.getNumSamples() - 3] + bottomCoefficients[4] * highPassData[highPassBuffer.getNumSamples() - 4];
         }
@@ -307,14 +281,14 @@ void HighPassFilterAudioProcessor::chebyshevFilter(float angleToFilter, AudioSam
             assert(false);
         }
 
-        channelData[i] = highPassData[lPP] = pastInputTemp - pastOutputTemp;
+        channelData[i] = highPassData[hPP] = pastInputTemp - pastOutputTemp;
         
-        if (++lPP >= highPassBuffer.getNumSamples()) {
-            lPP = 0;
+        if (++hPP >= highPassBuffer.getNumSamples()) {
+            hPP = 0;
         }
     }
     
-    highPassPosition = lPP;
+    highPassPosition = hPP;
 }
 
 void HighPassFilterAudioProcessor::calculateTopCoefficients(float coefficients[]) {
@@ -329,6 +303,12 @@ void HighPassFilterAudioProcessor::calculateZPoles(float angleToFilter, std::com
     for (int i = 0; i < NUMBER_OF_POLES; i++) {
         std::complex<float> cTemp = angleToFilter * chebyshevPoles[i];
         zPoles[i] = -(1.0f + cTemp / 2.0f) / (1.0f - cTemp / 2.0f);
+    }
+}
+
+void HighPassFilterAudioProcessor::calculateZZeros(std::complex<float> zZeros[]) {
+    for (int i = 1; i < NUMBER_OF_POLES; i++) {
+        zZeros[i] = std::complex<float>(1.0, 0.0);
     }
 }
 
@@ -353,17 +333,21 @@ void HighPassFilterAudioProcessor::calculateBottomCoefficients(float angleToFilt
     coefficients[4] = ((-zPoles[0]) * (-zPoles[1]) * (-zPoles[2]) * (-zPoles[3])).real();
 }
 
-float HighPassFilterAudioProcessor::calculateDCGain(float topCoefficients[], float bottomCoefficients[]) {
-    float tempTop = 0.0f;
-    float tempBottom = 1.0f;
+float HighPassFilterAudioProcessor::calculateGain(std::complex<float> frequency, std::complex<float> zPoles[], std::complex<float> zZeros[]) {
+    std::complex<float> tempTop = 1.0f;
+    std::complex<float> tempBottom = 1.0f;
     
     // DC is at z = 1 + 0j
     for (int i = 0; i < NUMBER_OF_POLES + 1; i++) {
-        tempTop += topCoefficients[i];
-        tempBottom += bottomCoefficients[i];
+        tempTop *= frequency - zZeros[i];
+        tempBottom *= frequency - zPoles[i];
     }
 
-    return tempTop / tempBottom;
+    return abs(tempTop / tempBottom);
+}
+
+float HighPassFilterAudioProcessor::calculateDCGain(std::complex<float> zPoles[], std::complex<float> zZeros[]) {
+    return calculateGain(std::complex<float>(1.0, 0.0), zPoles, zZeros);
 }
 
 
@@ -391,8 +375,8 @@ void HighPassFilterAudioProcessor::getStateInformation (MemoryBlock& destData)
     // add some attributes to it..
     xml.setAttribute ("uiWidth", lastUIWidth);
     xml.setAttribute ("uiHeight", lastUIHeight);
-    xml.setAttribute ("highPassFrequency", highPassFrequency);
-    xml.setAttribute ("highPassFilterEnabledFlag", highPassFilterEnabledFlag);
+    xml.setAttribute ("HighPassFrequency", HighPassFrequency);
+    xml.setAttribute ("HighPassFilterEnabledFlag", HighPassFilterEnabledFlag);
     
     // then use this helper function to stuff it into the binary blob and return it..
     copyXmlToBinary (xml, destData);
@@ -415,8 +399,8 @@ void HighPassFilterAudioProcessor::setStateInformation (const void* data, int si
             lastUIWidth  = xmlState->getIntAttribute ("uiWidth", lastUIWidth);
             lastUIHeight = xmlState->getIntAttribute ("uiHeight", lastUIHeight);
             
-            highPassFrequency = (float) xmlState->getDoubleAttribute ("highPassFrequency", highPassFrequency);
-            highPassFilterEnabledFlag = (bool) xmlState->getBoolAttribute("highPassFilterEnabledFlag", highPassFilterEnabledFlag);
+            HighPassFrequency = (float) xmlState->getDoubleAttribute ("HighPassFrequency", HighPassFrequency);
+            HighPassFilterEnabledFlag = (bool) xmlState->getBoolAttribute("HighPassFilterEnabledFlag", HighPassFilterEnabledFlag);
         }
     }
 }

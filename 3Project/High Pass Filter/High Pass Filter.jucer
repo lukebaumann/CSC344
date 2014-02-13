@@ -1,14 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <JUCERPROJECT id="BMXT2s" name="High Pass Filter" projectType="audioplug" version="1.0.0"
-              bundleIdentifier="com.yourcompany.HighPassFilter" includeBinaryInAppConfig="1"
+              bundleIdentifier="com.lyfewithluke.HighPassFilter" includeBinaryInAppConfig="1"
               buildVST="1" buildAU="1" pluginName="High Pass Filter" pluginDesc="High Pass Filter"
-              pluginManufacturer="yourcompany" pluginManufacturerCode="Manu"
+              pluginManufacturer="lyfewithluke" pluginManufacturerCode="Manu"
               pluginCode="Plug" pluginChannelConfigs="{1, 1}, {2, 2}" pluginIsSynth="0"
               pluginWantsMidiIn="0" pluginProducesMidiOut="0" pluginSilenceInIsSilenceOut="0"
               pluginEditorRequiresKeys="0" pluginAUExportPrefix="HighPassFilterAU"
-              pluginRTASCategory="" aaxIdentifier="com.yourcompany.HighPassFilter"
-              pluginAAXCategory="AAX_ePlugInCategory_Dynamics" jucerVersion="3.1.0">
+              pluginRTASCategory="" aaxIdentifier="com.lyfewithluke.HighPassFilter"
+              pluginAAXCategory="AAX_ePlugInCategory_Dynamics" jucerVersion="3.1.0"
+              companyName="Luke Corp">
   <MAINGROUP id="ybHEHC" name="High Pass Filter">
     <GROUP id="{9AA69C1F-6E2C-7C5F-D8A1-535D9C974A8B}" name="Source">
       <FILE id="lzK8ni" name="PluginProcessor.cpp" compile="1" resource="0"
