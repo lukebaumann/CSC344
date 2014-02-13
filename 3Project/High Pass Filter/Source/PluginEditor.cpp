@@ -88,6 +88,8 @@ void HighPassFilterAudioProcessorEditor::timerCallback()
         displayPositionInfo (newPos);
 
     highPassFrequencySlider.setValue (ourProcessor->getParameter(HighPassFilterAudioProcessor::highPassFrequencyParam), dontSendNotification);
+    
+    highPassFilterEnabledButton.setToggleState(ourProcessor->getParameter(HighPassFilterAudioProcessor::highPassFilterEnabledParam), dontSendNotification);
 }
 
 

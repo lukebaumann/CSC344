@@ -88,6 +88,8 @@ void LowPassFilterAudioProcessorEditor::timerCallback()
         displayPositionInfo (newPos);
 
     lowPassFrequencySlider.setValue (ourProcessor->getParameter(LowPassFilterAudioProcessor::lowPassFrequencyParam), dontSendNotification);
+    
+    lowPassFilterEnabledButton.setToggleState(ourProcessor->getParameter(LowPassFilterAudioProcessor::lowPassFilterEnabledParam), dontSendNotification);
 }
 
 
