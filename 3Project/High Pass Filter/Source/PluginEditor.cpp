@@ -16,7 +16,7 @@
 HighPassFilterAudioProcessorEditor::HighPassFilterAudioProcessorEditor (HighPassFilterAudioProcessor* ownerFilter)
     : AudioProcessorEditor (ownerFilter),
       infoLabel (String::empty),
-      highPassFrequencyLabel("", "Low Pass Frequency:"),
+      highPassFrequencyLabel("", "High Pass Frequency:"),
       highPassFrequencySlider("highPassFrequency"),
       highPassFilterEnabledButton("highPassFilterEnabled")
 {
