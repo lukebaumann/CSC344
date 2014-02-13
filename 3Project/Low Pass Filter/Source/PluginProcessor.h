@@ -38,9 +38,11 @@ public:
     void zPoleFilter(float angleToFilter, float *lowPassData, float* channelData, float* pastInputData, int numSamples);
     void chebyshevFilter(float angleToFilter, AudioSampleBuffer &buffer, int channel);
     void calculateZPoles(float angleToFilter, std::complex<float> zPoles[]);
+    void calculateZZeros(std::complex<float> zZeros[]);
     void calculateTopCoefficients(float coefficients[]);
     void calculateBottomCoefficients(float angleToFilter, std::complex<float> zPoles[], float coefficients[]);
-    float calculateDCGain(std::complex<float> zPoles[], float topCoefficients[]);
+    float calculateGain(std::complex<float> frequency, std::complex<float> zPoles[], std::complex<float> zZeros[]);
+    float calculateDCGain(std::complex<float> zPoles[], std::complex<float> zZeros[]);
 
     void reset() override;
     //==============================================================================
