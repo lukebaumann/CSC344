@@ -190,7 +190,8 @@ void HighPassFilterAudioProcessor::reset()
 void HighPassFilterAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& midiMessages)
 {
     int channel;
-    float angleToFilter = float_Pi * pow(2.0f, -highPassFrequency / 12);
+    // Played with the numbers. Solved: x*y^-1/12 = 22000, x*y^-80/12 = 10000
+    float angleToFilter = float_Pi * 2.0 / getSampleRate() * 22270 * pow(1.127f, -highPassFrequency / 12);
 
     // Go through the incoming data, and apply our gain to it...
     for (channel = 0; channel < getNumInputChannels(); ++channel)
@@ -293,7 +294,8 @@ void HighPassFilterAudioProcessor::chebyshevFilter(float angleToFilter, AudioSam
 void HighPassFilterAudioProcessor::calculateZPoles(float angleToFilter, std::complex<float> zPoles[]) {
     for (int i = 0; i < NUMBER_OF_POLES; i++) {
         std::complex<float> cTemp = angleToFilter * chebyshevPoles[i];
-        zPoles[i] = -(1.0f + cTemp / 2.0f) / (1.0f - cTemp / 2.0f);
+        zPoles[i] = (1.0f + cTemp / 2.0f) / (1.0f - cTemp / 2.0f);
+        zPoles[i] = -zPoles[i];
     }
 }
 
@@ -323,7 +325,6 @@ void HighPassFilterAudioProcessor::calculateTopCoefficients(std::complex<float> 
 }
 
 void HighPassFilterAudioProcessor::calculateBottomCoefficients(std::complex<float> zPoles[], float coefficients[]) {
-
     coefficients[0] = 0;
     coefficients[1] = ((-zPoles[0]) +
                        (-zPoles[1]) +
