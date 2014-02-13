@@ -18,14 +18,14 @@
 //==============================================================================
 /**
 */
-class FilterAudioProcessorEditor  : public AudioProcessorEditor,
+class HighPassFilterAudioProcessorEditor  : public AudioProcessorEditor,
                                     public Slider::Listener,
                                     public Button::Listener,
                                     public Timer
 {
 public:
-    FilterAudioProcessorEditor (FilterAudioProcessor* ownerFilter);
-    ~FilterAudioProcessorEditor();
+    HighPassFilterAudioProcessorEditor (HighPassFilterAudioProcessor* ownerFilter);
+    ~HighPassFilterAudioProcessorEditor();
 
     
     //==============================================================================
@@ -36,18 +36,18 @@ public:
     void buttonClicked (Button*) override;
     
 private:
-    Label infoLabel, lowPassFrequencyLabel;
-    Slider lowPassFrequencySlider;
-    ToggleButton lowPassFilterEnabledButton;
+    Label infoLabel, highPassFrequencyLabel;
+    Slider highPassFrequencySlider;
+    ToggleButton highPassFilterEnabledButton;
 
  ScopedPointer<ResizableCornerComponent> resizer;
     ComponentBoundsConstrainer resizeLimits;
     
     AudioPlayHead::CurrentPositionInfo lastDisplayedPosition;
     
-    FilterAudioProcessor* getProcessor() const
+    HighPassFilterAudioProcessor* getProcessor() const
     {
-        return static_cast <FilterAudioProcessor*> (getAudioProcessor());
+        return static_cast <HighPassFilterAudioProcessor*> (getAudioProcessor());
     }
     
     void displayPositionInfo (const AudioPlayHead::CurrentPositionInfo& pos);

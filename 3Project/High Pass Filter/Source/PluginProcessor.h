@@ -21,12 +21,12 @@
 //==============================================================================
 /**
 */
-class FilterAudioProcessor  : public AudioProcessor
+class HighPassFilterAudioProcessor  : public AudioProcessor
 {
 public:
     //==============================================================================
-    FilterAudioProcessor();
-    ~FilterAudioProcessor();
+    HighPassFilterAudioProcessor();
+    ~HighPassFilterAudioProcessor();
 
     //==============================================================================
     void prepareToPlay (double sampleRate, int samplesPerBlock);
@@ -35,12 +35,12 @@ public:
     void processBlock (AudioSampleBuffer& buffer, MidiBuffer& midiMessages);
 
     
-    void zPoleFilter(float angleToFilter, float *lowPassData, float* channelData, float* pastInputData, int numSamples);
+    void zPoleFilter(float angleToFilter, float *highPassData, float* channelData, float* pastInputData, int numSamples);
     void chebyshevFilter(float angleToFilter, AudioSampleBuffer &buffer, int channel);
     void calculateZPoles(float angleToFilter, std::complex<float> zPoles[]);
     void calculateTopCoefficients(float coefficients[]);
     void calculateBottomCoefficients(float angleToFilter, std::complex<float> zPoles[], float coefficients[]);
-    float calculateDCGain(std::complex<float> zPoles[], float topCoefficients[]);
+    float calculateDCGain(float topCoefficients[], float bottomCoefficients[]);
 
     void reset() override;
     //==============================================================================
@@ -96,25 +96,25 @@ public:
     //==============================================================================
     enum Parameters
     {
-        lowPassFrequencyParam = 0,
-        lowPassFilterEnabledParam,
+        highPassFrequencyParam = 0,
+        highPassFilterEnabledParam,
         
         totalNumParams
     };
     
     // For some reason, I cannot go lower than 183 Hz. Overshooting the minimum so I am never close
-    float lowPassFrequency;
-    bool lowPassFilterEnabledFlag;
+    float highPassFrequency;
+    bool highPassFilterEnabledFlag;
     
 private:
     //==============================================================================
-    AudioSampleBuffer lowPassBuffer, inputBuffer;
-    int lowPassPosition;
+    AudioSampleBuffer highPassBuffer, inputBuffer;
+    int highPassPosition;
     std::complex<float> chebyshevPoles[NUMBER_OF_POLES];
     const std::complex<float> I = std::complex<float>(0.0, 1.0);
     
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (FilterAudioProcessor)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (HighPassFilterAudioProcessor)
 };
 
 #endif  // PLUGINPROCESSOR_H_INCLUDED
