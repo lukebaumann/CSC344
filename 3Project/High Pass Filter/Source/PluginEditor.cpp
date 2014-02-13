@@ -25,7 +25,7 @@ HighPassFilterAudioProcessorEditor::HighPassFilterAudioProcessorEditor (HighPass
     highPassFrequencySlider.setSliderStyle (Slider::Rotary);
     highPassFrequencySlider.addListener (this);
     highPassFrequencySlider.setEnabled(true);
-    highPassFrequencySlider.setRange (1, 79, 1);
+    highPassFrequencySlider.setRange (1, 80, 1);
     
     highPassFrequencyLabel.attachToComponent (&highPassFrequencySlider, false);
     highPassFrequencyLabel.setFont (Font (11.0f));

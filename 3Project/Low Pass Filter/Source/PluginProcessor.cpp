@@ -375,8 +375,7 @@ float LowPassFilterAudioProcessor::calculateGain(std::complex<float> frequency, 
     std::complex<float> tempTop = 1.0f;
     std::complex<float> tempBottom = 1.0f;
     
-    // DC is at z = 1 + 0j
-    for (int i = 0; i < NUMBER_OF_POLES + 1; i++) {
+    for (int i = 0; i < NUMBER_OF_POLES; i++) {
         tempTop *= frequency - zZeros[i];
         tempBottom *= frequency - zPoles[i];
     }

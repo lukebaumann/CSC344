@@ -40,7 +40,7 @@ public:
     void calculateZPoles(float angleToFilter, std::complex<float> zPoles[]);
     void calculateZZeros(std::complex<float> zZeros[]);
     void calculateTopCoefficients(std::complex<float> zZeros[], float coefficients[]);
-    void calculateBottomCoefficients(float angleToFilter, std::complex<float> zPoles[], float coefficients[]);
+    void calculateBottomCoefficients(std::complex<float> zPoles[], float coefficients[]);
     float calculateGain(std::complex<float> frequency, std::complex<float> zPoles[], std::complex<float> zZeros[]);
     float calculateDCGain(std::complex<float> zPoles[], std::complex<float> zZeros[]);
     float calculateHFGain(std::complex<float> zPoles[], std::complex<float> zZeros[]);

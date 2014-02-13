@@ -25,7 +25,7 @@ LowPassFilterAudioProcessorEditor::LowPassFilterAudioProcessorEditor (LowPassFil
     lowPassFrequencySlider.setSliderStyle (Slider::Rotary);
     lowPassFrequencySlider.addListener (this);
     lowPassFrequencySlider.setEnabled(true);
-    lowPassFrequencySlider.setRange (1, 79, 1);
+    lowPassFrequencySlider.setRange (1, 80, 1);
     
     lowPassFrequencyLabel.attachToComponent (&lowPassFrequencySlider, false);
     lowPassFrequencyLabel.setFont (Font (11.0f));
