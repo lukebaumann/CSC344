@@ -13,6 +13,8 @@ package com.lukebaumann.csc344.algorithmiccomposition;
 import java.io.*;
 import javax.sound.midi.*; // package for all midi classes
 
+import com.lukebaumann.csc344.algorithmiccomposition.MarkovChain.Key;
+import com.lukebaumann.csc344.algorithmiccomposition.MarkovChain.Probabilities;
 import com.lukebaumann.csc344.algorithmiccomposition.MarkovChain.State;
 public class MidiFile
 {
@@ -30,7 +32,7 @@ public class MidiFile
 		{
 			sequence = new Sequence(Sequence.PPQ, PPQ);
 			track = sequence.createTrack();
-			chain = new MarkovChain(12);
+			chain = new MarkovChain(60, Key.HARMONIC_MINOR, Probabilities.ONE_FOUR_FIVE);
 
 			//****  General MIDI sysex -- turn on General MIDI sound set  ****
 			byte[] b = {(byte)0xF0, 0x7E, 0x7F, 0x09, 0x01, (byte)0xF7};
