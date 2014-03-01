@@ -13,8 +13,8 @@ package com.lukebaumann.csc344.algorithmiccomposition;
 import java.io.*;
 import javax.sound.midi.*; // package for all midi classes
 
-import com.lukebaumann.csc344.algorithmiccomposition.MarkovChainNotes.Key;
-import com.lukebaumann.csc344.algorithmiccomposition.MarkovChainNotes.Probabilities;
+import com.lukebaumann.csc344.algorithmiccomposition.MarkovChainMelody.Key;
+import com.lukebaumann.csc344.algorithmiccomposition.MarkovChainMelody.Probabilities;
 import com.lukebaumann.csc344.algorithmiccomposition.State.NoteVelocity;
 public class MidiFile
 {

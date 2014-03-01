@@ -5,9 +5,11 @@ import java.util.Arrays;
 import java.util.List;
 
 public class State {
+	private Chord chord;
 	private List<NoteVelocity> notesVelocities;
 	
-	public State(int note, double velocity) {
+	public State(Chord chord, int note, double velocity) {
+		this.chord = chord;
 		this.notesVelocities = Arrays.asList(new NoteVelocity(note, velocity));
 	}
 	

@@ -5,17 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
-import com.lukebaumann.csc344.algorithmiccomposition.MarkovChainNotes.Key;
-
 public class MarkovChainChords {
-	private State states[];
-	private int root;
-	private Random random;
-	
-	private static final double EPSILON = 1E-6;
-	private static final int SEED = 324;
-	private static final double VELOCITY = 0.7;
-	private static final int MIDDLE_C = 60;
 	
 	public enum Triad {		
 		MAJOR(Arrays.asList(0, 4, 7)),
