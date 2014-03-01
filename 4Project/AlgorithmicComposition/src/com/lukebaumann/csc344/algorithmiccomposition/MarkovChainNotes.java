@@ -2,7 +2,7 @@ package com.lukebaumann.csc344.algorithmiccomposition;
 
 import java.util.Random;
 
-public class MarkovChain {
+public class MarkovChainNotes {
 	private double probabilities[][];
 	private State states[];
 	private int root;
@@ -52,7 +52,7 @@ public class MarkovChain {
 		}
 	}
 	
-	public MarkovChain(int root, Key key, Probabilities probabilities) {
+	public MarkovChainNotes(int root, Key key, Probabilities probabilities) {
 		this.root = root;
 		this.key = key;
 		this.random = new Random(SEED);
@@ -106,31 +106,5 @@ public class MarkovChain {
 	
 	public State getNextState(int fromState) {
 		return states[getNextStateIndex(fromState)];
-	}
-	
-	static class State {
-		int note = 0;
-		double velocity = 0;
-		
-		public State(int note, double velocity) {
-			this.note = note;
-			this.velocity = velocity;
-		}
-		
-		public int getNote() {
-			return note;
-		}
-		
-		public void setNote(int note) {
-			this.note = note;
-		}
-		
-		public double getVelocity() {
-			return velocity;
-		}
-		
-		public void setVelocity(double velocity) {
-			this.velocity = velocity;
-		}
 	}
 }

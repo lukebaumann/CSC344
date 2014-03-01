@@ -13,16 +13,16 @@ package com.lukebaumann.csc344.algorithmiccomposition;
 import java.io.*;
 import javax.sound.midi.*; // package for all midi classes
 
-import com.lukebaumann.csc344.algorithmiccomposition.MarkovChain.Key;
-import com.lukebaumann.csc344.algorithmiccomposition.MarkovChain.Probabilities;
-import com.lukebaumann.csc344.algorithmiccomposition.MarkovChain.State;
+import com.lukebaumann.csc344.algorithmiccomposition.MarkovChainNotes.Key;
+import com.lukebaumann.csc344.algorithmiccomposition.MarkovChainNotes.Probabilities;
+import com.lukebaumann.csc344.algorithmiccomposition.State.NoteVelocity;
 public class MidiFile
 {
 
 
 	private static Sequence sequence;
 	private static Track track;
-	private static MarkovChain chain;
+	private static MarkovChainChords chain;
 	private static final int PPQ = 24;
 	private static final int LENGTH_OF_SONG = 200;
 
@@ -32,7 +32,7 @@ public class MidiFile
 		{
 			sequence = new Sequence(Sequence.PPQ, PPQ);
 			track = sequence.createTrack();
-			chain = new MarkovChain(60, Key.HARMONIC_MINOR, Probabilities.ONE_FOUR_FIVE);
+			chain = new MarkovChainChords(60);
 
 			//****  General MIDI sysex -- turn on General MIDI sound set  ****
 			byte[] b = {(byte)0xF0, 0x7E, 0x7F, 0x09, 0x01, (byte)0xF7};
@@ -89,6 +89,7 @@ public class MidiFile
 		catch(Exception e)
 		{
 			System.out.println("Exception caught " + e.toString());
+			e.printStackTrace();
 		}
 		System.out.println("midifile end ");
 	}
@@ -108,23 +109,16 @@ public class MidiFile
 		track.add(me);
 	}
 	
-	private static void makeMusic() {
+	private static void makeMusic() throws InvalidMidiDataException {
 		int currentState = 0;
 		
 		for (int i = 0; i < LENGTH_OF_SONG; i++) {
 			currentState = chain.getNextStateIndex(currentState);
-			State s = chain.getStates()[currentState];
-			try {
-				noteOn(s.getNote(), s.getVelocity(), PPQ * i);
-				noteOff(s.getNote(), PPQ * (i + 1));
-			} catch (InvalidMidiDataException e) {
-				System.out.println("Exception: " + e.toString());
-				System.out.println("s.getNote(): " + s.getNote());
-				System.out.println("s.getVelocity(): " + s.getVelocity());
-				System.out.println("i: " + i);
-				System.out.println("PPQ: " + PPQ);
-				System.out.println("i * PPQ: " + (i * PPQ));
-				
+			State s = chain.getState(currentState);
+
+			for (NoteVelocity nV : s.getNotesVelocities()) {
+				noteOn(nV.getNote(), nV.getVelocity(), PPQ * i);
+				noteOff(nV.getNote(), PPQ * (i + 1));
 			}
 		}
 	}
