@@ -12,13 +12,17 @@ package com.lukebaumann.csc344.algorithmiccomposition;
 
 import java.io.*;
 import javax.sound.midi.*; // package for all midi classes
+
+import com.lukebaumann.csc344.algorithmiccomposition.MarkovChain.State;
 public class MidiFile
 {
 
 
 	private static Sequence sequence;
 	private static Track track;
+	private static MarkovChain chain;
 	private static final int PPQ = 24;
+	private static final int LENGTH_OF_SONG = 200;
 
 	public static void main(String argv[]) {
 		System.out.println("midifile begin ");
@@ -26,7 +30,7 @@ public class MidiFile
 		{
 			sequence = new Sequence(Sequence.PPQ, PPQ);
 			track = sequence.createTrack();
-
+			chain = new MarkovChain(12);
 
 			//****  General MIDI sysex -- turn on General MIDI sound set  ****
 			byte[] b = {(byte)0xF0, 0x7E, 0x7F, 0x09, 0x01, (byte)0xF7};
@@ -67,17 +71,13 @@ public class MidiFile
 			me = new MidiEvent(mm,(long)0);
 			track.add(me);
 
-			int[] cMajor = {60, 62, 64, 65, 67, 69, 71, 72};
-			for (int i = 0; i < 8; i++) {
-				noteOn(cMajor[i], 0.4, PPQ * i);
-				noteOff(cMajor[i], PPQ * (i + 1));
-			}
+			makeMusic();
 
 			//****  set end of track (meta event) 19 ticks later  ****
 			mt = new MetaMessage();
 			byte[] bet = {}; // empty array
 			mt.setMessage(0x2F,bet,0);
-			me = new MidiEvent(mt, (long) (8 * PPQ + 10));
+			me = new MidiEvent(mt, (long) (LENGTH_OF_SONG * PPQ + 10));
 			track.add(me);
 
 			//****  write the MIDI sequence to a MIDI file  ****
@@ -90,7 +90,6 @@ public class MidiFile
 		}
 		System.out.println("midifile end ");
 	}
-
 
 	private static void noteOn(int note, double velocity, long when) throws InvalidMidiDataException {
 		int vel = (int) (127 * velocity);
@@ -105,5 +104,26 @@ public class MidiFile
 		mm.setMessage(ShortMessage.NOTE_OFF, note, 0);
 		MidiEvent me = new MidiEvent(mm, when);
 		track.add(me);
+	}
+	
+	private static void makeMusic() {
+		int currentState = 0;
+		
+		for (int i = 0; i < LENGTH_OF_SONG; i++) {
+			currentState = chain.getNextStateIndex(currentState);
+			State s = chain.getStates()[currentState];
+			try {
+				noteOn(s.getNote(), s.getVelocity(), PPQ * i);
+				noteOff(s.getNote(), PPQ * (i + 1));
+			} catch (InvalidMidiDataException e) {
+				System.out.println("Exception: " + e.toString());
+				System.out.println("s.getNote(): " + s.getNote());
+				System.out.println("s.getVelocity(): " + s.getVelocity());
+				System.out.println("i: " + i);
+				System.out.println("PPQ: " + PPQ);
+				System.out.println("i * PPQ: " + (i * PPQ));
+				
+			}
+		}
 	}
 }
