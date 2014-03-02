@@ -3,9 +3,10 @@ package com.lukebaumann.csc344.algorithmiccomposition;
 import java.util.Random;
 
 public class MarkovChainMelody {
-	private static final int SEED = 3;
+	private static final int SEED = 4;
 	
-	// Probabilities of the note to be played based on the current chord
+	// Probabilities of the note to be played based on the current chord states = {I, ii, iii, IV, V, vi, vii}
+	// notes = {0, 1, 2, 3, 4, 5, 6, 7}
 	private double noteProbabilities[][] = new double[][] {
 			{0.250, 0.125, 0.250, 0.125, 0.250, 0.000, 0.000},
 			{0.000, 0.250, 0.125, 0.250, 0.125, 0.250, 0.000},
@@ -15,7 +16,21 @@ public class MarkovChainMelody {
 			{0.250, 0.125, 0.250, 0.000, 0.000, 0.250, 0.125},
 			{0.125, 0.250, 0.125, 0.250, 0.000, 0.000, 0.250}};
 	
-	// Probabilities of the next octive based on the current note
+	// Probabilities of the length of the note to be played based on the how much of the measure has been played.
+	// states =  {0, 1/8, 1/4, 3/8, 1/2, 5/8, 3/4, 7/8}
+	// note lengths = {1/8, 1/4, 3/8, 1/2, 5/8, 3/4, 7/8, 1}
+	private double noteLengthProbabilities[][] = new double[][] {
+			{0.20, 0.20, 0.05, 0.20, 0.05, 0.05, 0.05, 0.20},
+			{0.40, 0.05, 0.30, 0.50, 0.10, 0.05, 0.05, 0.00},
+			{0.20, 0.40, 0.50, 0.20, 0.50, 0.20, 0.00, 0.00},
+			{0.60, 0.05, 0.20, 0.50, 0.10, 0.00, 0.00, 0.00},
+			{0.35, 0.35, 0.10, 0.20, 0.00, 0.00, 0.00, 0.00},
+			{0.80, 0.10, 0.10, 0.00, 0.00, 0.00, 0.00, 0.00},
+			{0.50, 0.50, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00},
+			{1.00, 0.00, 0.00, 0.00, 0.00, 0.05, 0.00, 0.00}};
+	
+	// Probabilities of the next octive based on the current note states = {0, 1, 2, 3, 4, 5, 6, 7}
+	// next octive = {-1, 0, 1}
 	private double moveOctiveProbabilities[][] = new double[][] {
 			{0.01, 0.74, 0.25},
 			{0.02, 0.83, 0.15},
@@ -35,15 +50,23 @@ public class MarkovChainMelody {
 		int currentOctive = state.getCurrentOctive();
 		int currentChord = state.getCurrentChord();
 		int currentNote = state.getCurrentNote();
+		int currentMeasureLengthPlayed = state.getCurrentMeasureLengthPlayed() + state.getCurrentNoteLength();
 		int changeInOctive = getChangeInOctive(currentNote);
+		int noteLength = getNoteLength(currentMeasureLengthPlayed);
 		
-		if (currentOctive + changeInOctive < 5 || currentOctive + changeInOctive > 7) {
+		if (currentMeasureLengthPlayed == 8) {
+			currentMeasureLengthPlayed = 0;
+		}
+		state.setCurrentMeasureLengthPlayed(currentMeasureLengthPlayed);
+
+		if (currentOctive + changeInOctive < 6 || currentOctive + changeInOctive > 7) {
 			state.setCurrentOctive(currentOctive);
 		}
 		else {
 			state.setCurrentOctive(currentOctive + changeInOctive);
 		}
 		state.setCurrentNote(getNextNote(currentChord));
+		state.setCurrentNoteLength(noteLength);
 	}
 
 	private int getNextNote(int currentChord) {
@@ -78,5 +101,22 @@ public class MarkovChainMelody {
 		}
 		
 		return i - 1;
+	}
+	
+	private int getNoteLength(int measureLengthPlayed) {
+		double selection = random.nextDouble();
+
+		double sum = 0.0;
+		int i = 0;
+		
+		for (i = 0; i < noteLengthProbabilities.length; i++) {
+			sum += noteLengthProbabilities[measureLengthPlayed][i];
+			
+			if (selection < sum) {
+				break;
+			}
+		}
+		
+		return i + 1;
 	}
 }

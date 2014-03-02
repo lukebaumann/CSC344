@@ -5,11 +5,15 @@ public class State {
 	private int currentChord;
 	private int currentOctive;
 	private int currentNote;
+	private int currentNoteLength;
+	private int currentMeasureLengthPlayed;
 
 	public State(int currentChord, int currentOctive, int currentNote) {
 		this.currentChord = currentChord;
 		this.currentOctive = currentOctive;
 		this.currentNote = currentNote;
+		this.currentNoteLength = 2;
+		this.currentMeasureLengthPlayed = 0;
 	}
 
 	public int getCurrentChord() {
@@ -34,6 +38,22 @@ public class State {
 
 	public void setCurrentNote(int currentNote) {
 		this.currentNote = currentNote;
+	}
+
+	public int getCurrentNoteLength() {
+		return currentNoteLength;
+	}
+
+	public void setCurrentNoteLength(int currentNoteLength) {
+		this.currentNoteLength = currentNoteLength;
+	}
+	
+	public int getCurrentMeasureLengthPlayed() {
+		return currentMeasureLengthPlayed;
+	}
+
+	public void setCurrentMeasureLengthPlayed(int currentMeasureLengthPlayed) {
+		this.currentMeasureLengthPlayed = currentMeasureLengthPlayed;
 	}
 
 }

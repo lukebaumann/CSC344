@@ -15,12 +15,11 @@ import javax.sound.midi.*; // package for all midi classes
 
 public class MidiFile
 {
-
-
 	private static Sequence sequence;
 	private static Track track;
 	private static MarkovChainChords chain;
 	private static final int PPQ = 24;
+	// In fourth notes
 	private static final int LENGTH_OF_SONG = 200;
 
 	public static void main(String argv[]) {
@@ -75,7 +74,7 @@ public class MidiFile
 			mt = new MetaMessage();
 			byte[] bet = {}; // empty array
 			mt.setMessage(0x2F,bet,0);
-			me = new MidiEvent(mt, (long) (LENGTH_OF_SONG * PPQ + 10));
+			me = new MidiEvent(mt, (long) (LENGTH_OF_SONG / 2 * PPQ + 10));
 			track.add(me);
 
 			//****  write the MIDI sequence to a MIDI file  ****
@@ -106,12 +105,12 @@ public class MidiFile
 	}
 
 	private static void makeMusic() throws InvalidMidiDataException {
-		Song song = new Song(Key.C_HARMONIC_MINOR, LENGTH_OF_SONG);
+		Song song = new Song(Key.C_MAJOR, LENGTH_OF_SONG * 2);
 
 		for (NoteVelocity nV : song.getNoteVelocities()) {
 			try {
-			noteOn(nV.getNote(), nV.getVelocity(), PPQ * nV.getWhen());
-			noteOff(nV.getNote(), PPQ * (nV.getWhen() + nV.getHowLong()));
+			noteOn(nV.getNote(), nV.getVelocity(), PPQ * nV.getWhen() / 2);
+			noteOff(nV.getNote(), PPQ  * (nV.getWhen() + nV.getHowLong() / 2));
 			}
 			catch (InvalidMidiDataException e) {
 				System.out.println("nV.getNote(): " + nV.getNote());
