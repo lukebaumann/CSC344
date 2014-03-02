@@ -1,74 +1,39 @@
 package com.lukebaumann.csc344.algorithmiccomposition;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 public class State {
-	private Chord chord;
-	private List<NoteVelocity> notesVelocities;
-	
-	public State(Chord chord, int note, double velocity) {
-		this.chord = chord;
-		this.notesVelocities = Arrays.asList(new NoteVelocity(note, velocity));
-	}
-	
-	public State(List<Integer> notes, double velocity) {
-		this.notesVelocities = new ArrayList<NoteVelocity>();
-		for (int i = 0; i < notes.size(); i++) {
-			notesVelocities.add(i, new NoteVelocity(notes.get(i), velocity));
-		}
-	}
-	
-	public State(List<NoteVelocity> notesVelocities) {
-		this.notesVelocities = notesVelocities;
+	private int currentChord;
+	private int currentOctive;
+	private int currentNote;
+
+	public State(int currentChord, int currentOctive, int currentNote) {
+		this.currentChord = currentChord;
+		this.currentOctive = currentOctive;
+		this.currentNote = currentNote;
 	}
 
-	public List<NoteVelocity> getNotesVelocities() {
-		return notesVelocities;
+	public int getCurrentChord() {
+		return currentChord;
 	}
 
-	public int getNote(int index) {
-		return notesVelocities.get(index).getNote();
+	public void setCurrentChord(int currentChord) {
+		this.currentChord = currentChord;
 	}
 
-	public void setNote(int index, int note) {
-		notesVelocities.get(index).setNote(note);
+	public int getCurrentOctive() {
+		return currentOctive;
 	}
 
-	public double getVelocity(int index) {
-		return notesVelocities.get(index).getVelocity();
+	public void setCurrentOctive(int currentOctive) {
+		this.currentOctive = currentOctive;
 	}
 
-	public void setVelocity(int index, double velocity) {
-		notesVelocities.get(index).setVelocity(velocity);
+	public int getCurrentNote() {
+		return currentNote;
 	}
-	
-	public class NoteVelocity {
-		int note;
-		double velocity;
 
-		public NoteVelocity(int note, double velocity) {
-			super();
-			this.note = note;
-			this.velocity = velocity;
-		}
-
-		public int getNote() {
-			return note;
-		}
-
-		public void setNote(int note) {
-			this.note = note;
-		}
-
-		public double getVelocity() {
-			return velocity;
-		}
-
-		public void setVelocity(double velocity) {
-			this.velocity = velocity;
-		}
+	public void setCurrentNote(int currentNote) {
+		this.currentNote = currentNote;
 	}
 
 }

@@ -3,47 +3,57 @@ package com.lukebaumann.csc344.algorithmiccomposition;
 import java.util.Random;
 
 public class MarkovChainMelody {
-	int currentOctive;
-	int currentNoteIndex;
-	int currentChordIndex;
-	State currentState;
+	private static final int SEED = 3;
+	
 	// Probabilities of the note to be played based on the current chord
-	private double noteIndexProbabilities[][] = new double[][] {
+	private double noteProbabilities[][] = new double[][] {
 			{0.25, 0.10, 0.25, 0.10, 0.25, 0.00, 0.05},
+			{0.05, 0.25, 0.10, 0.25, 0.10, 0.25, 0.00},
+			{0.00, 0.05, 0.25, 0.10, 0.25, 0.10, 0.25},
 			{0.25, 0.00, 0.05, 0.25, 0.10, 0.25, 0.10},
 			{0.10, 0.25, 0.00, 0.05, 0.25, 0.10, 0.25},
-			{0.25, 0.10, 0.25, 0.00, 0.05, 0.025, 0.10}};
+			{0.25, 0.10, 0.25, 0.00, 0.05, 0.25, 0.10},
+			{0.10, 0.25, 0.10, 0.25, 0.00, 0.05, 0.25}};
 	
+	// Probabilities of the next octive based on the current note
 	private double moveOctiveProbabilities[][] = new double[][] {
-			{0.01, 0.54, 0.45},
-			{0.02, 0.68, 0.30},
-			{0.05, 0.85, 0.10},
-			{0.07, 0.86, 0.07},
-			{0.10, 0.85, 0.05},
-			{0.30, 0.68, 0.02},
-			{0.01, 0.54, 0.45}};
+			{0.01, 0.74, 0.25},
+			{0.02, 0.83, 0.15},
+			{0.03, 0.92, 0.05},
+			{0.04, 0.92, 0.04},
+			{0.05, 0.92, 0.03},
+			{0.15, 0.83, 0.02},
+			{0.25, 0.74, 0.01}};
 
 	private Random random;
 	
 	public MarkovChainMelody() {
-		currentOctive = 6;
-		currentNoteIndex = 0;
-		currentChordIndex = 0;;
+		random = new Random(SEED);
 	}
 	
-	public State getNextStateIndex(State fromState) {
-		State toState = new State(getNextOctive(fromState), getNextNoteIndex(fromState));
-		return toState;
+	public void setNextStateNoteInformation(State state) {
+		int currentOctive = state.getCurrentOctive();
+		int currentChord = state.getCurrentChord();
+		int currentNote = state.getCurrentNote();
+		int changeInOctive = getChangeInOctive(currentNote);
+		
+		if (currentOctive + changeInOctive < 5 || currentOctive + changeInOctive > 7) {
+			state.setCurrentOctive(currentOctive);
+		}
+		else {
+			state.setCurrentOctive(currentOctive + changeInOctive);
+		}
+		state.setCurrentNote(getNextNote(currentChord));
 	}
 
-	private int getNextNoteIndex(State fromState) {
+	private int getNextNote(int currentChord) {
 		double selection = random.nextDouble();
 
 		double sum = 0.0;
 		int i = 0;
 		
-		for (i = 0; i < noteIndexProbabilities.length; i++) {
-			sum += noteIndexProbabilities[fromState.getCurrentChord()][i];
+		for (i = 0; i < noteProbabilities.length; i++) {
+			sum += noteProbabilities[currentChord][i];
 			
 			if (selection < sum) {
 				break;
@@ -53,20 +63,20 @@ public class MarkovChainMelody {
 		return i;
 	}
 
-	private int getNextOctive(State fromState) {
+	private int getChangeInOctive(int currentNote) {
 		double selection = random.nextDouble();
 
 		double sum = 0.0;
 		int i = 0;
 		
 		for (i = 0; i < moveOctiveProbabilities.length; i++) {
-			sum += moveOctiveProbabilities[fromState.getCurrentNote()][i];
+			sum += moveOctiveProbabilities[currentNote][i];
 			
 			if (selection < sum) {
 				break;
 			}
 		}
 		
-		return fromState.getCurrentOctive() + i - 1;
+		return i - 1;
 	}
 }

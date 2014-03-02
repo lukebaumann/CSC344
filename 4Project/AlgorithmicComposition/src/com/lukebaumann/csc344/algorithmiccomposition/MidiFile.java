@@ -13,9 +13,6 @@ package com.lukebaumann.csc344.algorithmiccomposition;
 import java.io.*;
 import javax.sound.midi.*; // package for all midi classes
 
-import com.lukebaumann.csc344.algorithmiccomposition.MarkovChainMelody.Key;
-import com.lukebaumann.csc344.algorithmiccomposition.MarkovChainMelody.Probabilities;
-import com.lukebaumann.csc344.algorithmiccomposition.State.NoteVelocity;
 public class MidiFile
 {
 
@@ -32,7 +29,6 @@ public class MidiFile
 		{
 			sequence = new Sequence(Sequence.PPQ, PPQ);
 			track = sequence.createTrack();
-			chain = new MarkovChainChords(60);
 
 			//****  General MIDI sysex -- turn on General MIDI sound set  ****
 			byte[] b = {(byte)0xF0, 0x7E, 0x7F, 0x09, 0x01, (byte)0xF7};
@@ -108,17 +104,20 @@ public class MidiFile
 		MidiEvent me = new MidiEvent(mm, when);
 		track.add(me);
 	}
-	
-	private static void makeMusic() throws InvalidMidiDataException {
-		int currentState = 0;
-		
-		for (int i = 0; i < LENGTH_OF_SONG; i++) {
-			currentState = chain.getNextStateIndex(currentState);
-			State s = chain.getState(currentState);
 
-			for (NoteVelocity nV : s.getNotesVelocities()) {
-				noteOn(nV.getNote(), nV.getVelocity(), PPQ * i);
-				noteOff(nV.getNote(), PPQ * (i + 1));
+	private static void makeMusic() throws InvalidMidiDataException {
+		Song song = new Song(Key.C_MAJOR, LENGTH_OF_SONG);
+
+		for (NoteVelocity nV : song.getNoteVelocities()) {
+			try {
+			noteOn(nV.getNote(), nV.getVelocity(), PPQ * nV.getWhen());
+			noteOff(nV.getNote(), PPQ * (nV.getWhen() + nV.getHowLong()));
+			}
+			catch (InvalidMidiDataException e) {
+				System.out.println("nV.getNote(): " + nV.getNote());
+				System.out.println("nV.getVelocity(): " + nV.getVelocity());
+				System.out.println("nV.getWhen(): " + nV.getWhen());
+				System.out.println("nV.getHowLong(): " + nV.getHowLong());
 			}
 		}
 	}
