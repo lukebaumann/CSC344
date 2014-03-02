@@ -106,7 +106,7 @@ public class MidiFile
 	}
 
 	private static void makeMusic() throws InvalidMidiDataException {
-		Song song = new Song(Key.C_MAJOR, LENGTH_OF_SONG);
+		Song song = new Song(Key.C_HARMONIC_MINOR, LENGTH_OF_SONG);
 
 		for (NoteVelocity nV : song.getNoteVelocities()) {
 			try {
