@@ -5,6 +5,9 @@ import java.util.Random;
 public class MarkovChainChords {
 	private static final int SEED = 3;
 
+	private static final int NUMBER_OF_CHORDS = 4;
+	private int[] chords;
+
 	private double chordIndexProbabilities[][] = new double[][] {
 			{0.00, 0.12, 0.12, 0.25, 0.25, 0.25, 0.01},
 			{0.00, 0.00, 0.00, 0.70, 0.30, 0.00, 0.00},
@@ -20,7 +23,7 @@ public class MarkovChainChords {
 		random = new Random(SEED);
 	}
 	
-	public void setNextStateChordInformation(State state) {
+	public void setNextStateChordInformation(State state) {		
 		int currentChord = state.getCurrentChord();
 		state.setCurrentChord(getNextChord(currentChord));
 	}

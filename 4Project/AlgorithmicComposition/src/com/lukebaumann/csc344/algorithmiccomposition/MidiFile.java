@@ -17,7 +17,6 @@ public class MidiFile
 {
 	private static Sequence sequence;
 	private static Track track;
-	private static MarkovChainChords chain;
 	private static final int PPQ = 24;
 	// In fourth notes
 	private static final int LENGTH_OF_SONG = 200;
@@ -110,7 +109,7 @@ public class MidiFile
 		for (NoteVelocity nV : song.getNoteVelocities()) {
 			try {
 			noteOn(nV.getNote(), nV.getVelocity(), PPQ * nV.getWhen() / 2);
-			noteOff(nV.getNote(), PPQ  * (nV.getWhen() + nV.getHowLong() / 2));
+			noteOff(nV.getNote(), PPQ  * (nV.getWhen() + nV.getHowLong()) / 2);
 			}
 			catch (InvalidMidiDataException e) {
 				System.out.println("nV.getNote(): " + nV.getNote());
