@@ -19,7 +19,7 @@ public class MidiFile
 	private static Track track;
 	private static final int PPQ = 24;
 	// In fourth notes
-	private static final int LENGTH_OF_SONG = 200;
+	private static final int LENGTH_OF_SONG = 60;
 
 	public static void main(String argv[]) {
 		System.out.println("midifile begin ");

@@ -3,7 +3,7 @@ package com.lukebaumann.csc344.algorithmiccomposition;
 import java.util.Random;
 
 public class MarkovChainChords {
-	private static final int SEED = 3;
+	private static final int SEED = 7;
 
 	private static final int NUMBER_OF_CHORDS = 4;
 	private int[] chords;
