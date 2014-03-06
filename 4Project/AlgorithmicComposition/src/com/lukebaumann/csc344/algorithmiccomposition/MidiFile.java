@@ -7,6 +7,8 @@
  *
  * author  Karl Brown
  * last updated 2/24/2003
+ * editted Luke Baumann
+ * last updated 3/6/2014
  */
 package com.lukebaumann.csc344.algorithmiccomposition;
 
