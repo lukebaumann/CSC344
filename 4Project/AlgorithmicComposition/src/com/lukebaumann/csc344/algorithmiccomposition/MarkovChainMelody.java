@@ -3,7 +3,7 @@ package com.lukebaumann.csc344.algorithmiccomposition;
 import java.util.Random;
 
 public class MarkovChainMelody {
-	private static final int SEED = 9;	
+	private static final int SEED = 8746;	
 
 	public enum NoteProbabilities {
 		// Probabilities of the note to be played based on the current chord states = {I, ii, iii, IV, V, vi, vii}

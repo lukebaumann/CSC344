@@ -10,13 +10,14 @@ public class Song {
 	private static final int BASS_OCTIVE = 4;
 	private static final double VELOCITY = 0.7;
 	// In eighth notes
-	private static final int CHORD_ON_TIME = 8;
+	private static final int MEASURE_OF_TIME = 8;
 	private static final int EIGHTH_NOTES_IN_MEASURE = 8;
 	private static final int NOTES_IN_OCTIVE = 12;
 	private static final int NUMBER_OF_CHORDS = 4;
 	private Key key;
 	// In eighth notes
 	private int lengthOfSong;
+	private boolean holdLastMeasure;
 	private MarkovChainMelody melodyChain;
 	private MarkovChainChords chordsChain;
 	private int[] chords;
@@ -24,13 +25,14 @@ public class Song {
 	private List<NoteVelocity> notesVelocities;
 
 	
-	public Song(Key key, int lengthOfSong) {
+	public Song(Key key, int lengthOfSong, boolean holdLastMeasure) {
 		if (lengthOfSong < 8) {
 			throw new IllegalArgumentException("lengthOfSong needs to be at least 8");
 		}
 
 		this.key = key;
 		this.lengthOfSong = lengthOfSong * 2;
+		this.holdLastMeasure = holdLastMeasure;
 		
 		state = new State(0, 6, 0);
 		melodyChain = new MarkovChainMelody();
@@ -65,6 +67,9 @@ public class Song {
 	}
 	
 	private void makeSong() {
+		List<NoteVelocity> chordNotes = null;
+		List<NoteVelocity> melodyNotes = null;
+		
 		int numberOfMeasures = lengthOfSong / 8;
 		//i is measure number
 		for (int i = 0; i < numberOfMeasures; i++) {
@@ -80,29 +85,45 @@ public class Song {
 				setChords();
 				setMelodyToOutro();
 			}
-			
+
 			state.setCurrentChord(chords[i % NUMBER_OF_CHORDS]);
-			notesVelocities.addAll(getNotesVelocitiesFromChord(i));
-			playMeasureWorthOfMelody(i);
+			chordNotes = getNotesVelocitiesFromChord(i);
+			melodyNotes = getMeasureWorthOfMelody(i);
+			
+			notesVelocities.addAll(chordNotes);
+			notesVelocities.addAll(melodyNotes);
+		}
+		
+		if (holdLastMeasure) {
+			NoteVelocity lastNote = melodyNotes.get(melodyNotes.size() - 1);
+			lastNote.setHowLong(lastNote.getHowLong() + MEASURE_OF_TIME);
+			
+			for (NoteVelocity nV : chordNotes) {
+				nV.setHowLong(nV.getHowLong() + MEASURE_OF_TIME);
+			}
 		}
 	}
 	
 	private List<NoteVelocity> getNotesVelocitiesFromChord(int measure) {
 		List<NoteVelocity> notesVelocities = new ArrayList<NoteVelocity>();
 		for(Integer noteIndex : Chord.values()[state.getCurrentChord()].noteIndexes) {
-			notesVelocities.add(new NoteVelocity(key.getNotes().get(noteIndex) + BASS_OCTIVE * NOTES_IN_OCTIVE, VELOCITY, measure * EIGHTH_NOTES_IN_MEASURE, CHORD_ON_TIME));
+			notesVelocities.add(new NoteVelocity(key.getNotes().get(noteIndex) + BASS_OCTIVE * NOTES_IN_OCTIVE, VELOCITY, measure * EIGHTH_NOTES_IN_MEASURE, MEASURE_OF_TIME));
 		}
 		
 		return notesVelocities;
 	}
 	
-	private void playMeasureWorthOfMelody(int measure) {
+	private List<NoteVelocity> getMeasureWorthOfMelody(int measure) {
+		List<NoteVelocity> notesVelocities = new ArrayList<NoteVelocity>();
+		
 		while(state.getCurrentMeasureLengthPlayed() + state.getCurrentNoteLength() < 8) {
 			notesVelocities.add(getNoteFromMelody(measure));
 			melodyChain.setNextStateNoteInformation(state);
 		}
 		notesVelocities.add(getNoteFromMelody(measure));
 		melodyChain.setNextStateNoteInformation(state);
+
+		return notesVelocities;
 	}
 	
 	private NoteVelocity getNoteFromMelody(int measure) {
