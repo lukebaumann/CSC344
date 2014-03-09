@@ -35,8 +35,8 @@ public class Song {
 		this.holdLastMeasure = holdLastMeasure;
 		
 		state = new State(0, 6, 0);
-		melodyChain = new MarkovChainMelody();
-		chordsChain = new MarkovChainChords();
+		melodyChain = new MarkovChainMelody(23232323);
+		chordsChain = new MarkovChainChords(343434);
 		
 		chords = new int[NUMBER_OF_CHORDS];
 		notesVelocities = new ArrayList<NoteVelocity>();
@@ -77,11 +77,11 @@ public class Song {
 				setChords();
 				setMelodyToIntro();
 			}
-			if (i == 8) {
+			if (i == 4) {
 				setChords();
 				setMelodyToMiddle();
 			}
-			else if (i == numberOfMeasures - 8) {
+			else if (i == numberOfMeasures - 4) {
 				setChords();
 				setMelodyToOutro();
 			}

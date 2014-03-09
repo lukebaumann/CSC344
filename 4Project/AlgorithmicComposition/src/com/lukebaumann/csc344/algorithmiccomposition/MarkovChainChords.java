@@ -3,8 +3,6 @@ package com.lukebaumann.csc344.algorithmiccomposition;
 import java.util.Random;
 
 public class MarkovChainChords {
-	private static final int SEED = 9222;
-
 	private static final int NUMBER_OF_CHORDS = 4;
 	private int[] chords;
 
@@ -20,7 +18,11 @@ public class MarkovChainChords {
 	private Random random;
 	
 	public MarkovChainChords() {
-		random = new Random(SEED);
+		random = new Random();
+	}
+	
+	public MarkovChainChords(int seed) {
+		random = new Random(seed);
 	}
 	
 	public void setNextStateChordInformation(State state) {		

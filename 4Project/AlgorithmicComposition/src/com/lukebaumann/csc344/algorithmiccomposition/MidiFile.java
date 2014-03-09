@@ -21,7 +21,7 @@ public class MidiFile
 	private static Track track;
 	private static final int PPQ = 24;
 	// In fourth notes
-	private static final int LENGTH_OF_SONG = 60;
+	private static final int LENGTH_OF_SONG = 30;
 
 	public static void main(String argv[]) {
 		System.out.println("midifile begin ");
@@ -106,7 +106,7 @@ public class MidiFile
 	}
 
 	private static void makeMusic() throws InvalidMidiDataException {
-		Song song = new Song(Key.G_HARMONIC_MINOR, LENGTH_OF_SONG * 2, true);
+		Song song = new Song(Key.G_MINOR, LENGTH_OF_SONG * 2, true);
 
 		for (NoteVelocity nV : song.getNoteVelocities()) {
 			try {

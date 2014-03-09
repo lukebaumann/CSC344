@@ -3,8 +3,6 @@ package com.lukebaumann.csc344.algorithmiccomposition;
 import java.util.Random;
 
 public class MarkovChainMelody {
-	private static final int SEED = 8746;	
-
 	public enum NoteProbabilities {
 		// Probabilities of the note to be played based on the current chord states = {I, ii, iii, IV, V, vi, vii}
 		// notes = {0, 1, 2, 3, 4, 5, 6, 7}
@@ -110,10 +108,20 @@ public class MarkovChainMelody {
 	
 	public MarkovChainMelody() {
 		this(NoteProbabilities.TRIAD_NOTES, NoteLengthProbabilities.NORMAL);
+		random = new Random();
 	}
 	
-	public MarkovChainMelody(NoteProbabilities noteProbabilities, NoteLengthProbabilities noteLengthProbabilities) {
-		random = new Random(SEED);
+	public MarkovChainMelody(int seed) {
+		this(NoteProbabilities.TRIAD_NOTES, NoteLengthProbabilities.NORMAL);
+		random = new Random(seed);
+	}
+	
+	public MarkovChainMelody(int seed, NoteProbabilities noteProbabilities, NoteLengthProbabilities noteLengthProbabilities) {
+		this(NoteProbabilities.TRIAD_NOTES, NoteLengthProbabilities.NORMAL);
+		random = new Random(seed);
+	}
+	
+	private MarkovChainMelody(NoteProbabilities noteProbabilities, NoteLengthProbabilities noteLengthProbabilities) {
 		this.noteProbabilities = noteProbabilities;
 		this.noteLengthProbabilities = noteLengthProbabilities;
 	}
