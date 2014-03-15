@@ -29,20 +29,26 @@ int main(int argc, char *argv[]) {
       for (bufferOffset %= BUFFER_SIZE; bufferOffset < bufferRead - WINDOW_SIZE; bufferOffset += WINDOW_DELTA) {
          findAllFrequencyAmplitudes(buffer, bufferOffset);
       }
+      printf("1\n");
 
       if ((bufferRead = sf_read_int(in, buffer + HALF_BUFFER_SIZE, HALF_BUFFER_SIZE)) < WINDOW_DELTA) {
          break;
       }
+
+      printf("2\n");
       for (; bufferOffset < HALF_BUFFER_SIZE + bufferRead - WINDOW_SIZE; bufferOffset += WINDOW_DELTA) {
          findAllFrequencyAmplitudes(buffer, bufferOffset);
       }
 
+      printf("3\n");
       if ((bufferRead = sf_read_int(in, buffer, HALF_BUFFER_SIZE)) < WINDOW_DELTA) {
          break;
       }
       for (; bufferOffset < BUFFER_SIZE; bufferOffset += WINDOW_DELTA) {
-         findAllFrequencyAmplitudes(buffer + HALF_BUFFER_SIZE + bufferOffset, WINDOW_SIZE);
+         findAllFrequencyAmplitudes(buffer, bufferOffset);
       }
+
+      printf("4\n");
    }
 
    sf_close(in);
@@ -62,22 +68,22 @@ double findOneFrequencyAmplitude(int *buffer, int bufferOffset, double frequency
    int i = 0;
    if (bufferOffset < BUFFER_SIZE - WINDOW_SIZE) {
 
-      for (i = bufferOffset; i < bufferOffset + WINDOW_SIZE; i++) {
+      for (i = 0; i < WINDOW_SIZE; i++) {
          tempExp = -I * 2 * M_PI * frequency * i / WINDOW_SIZE;
-         temp = buffer[i] * cexp(tempExp);
+         temp = buffer[i + bufferOffset] * cexp(tempExp);
          frequencyAmplitude += temp;
       }
    }
 
    else {
-      for (i = bufferOffset; i < BUFFER_SIZE; i++) {
+      for (i = 0; i < BUFFER_SIZE - bufferOffset; i++) {
          tempExp = -I * 2 * M_PI * frequency * i / WINDOW_SIZE;
-         temp = buffer[i] * cexp(tempExp);
+         temp = buffer[i + bufferOffset] * cexp(tempExp);
          frequencyAmplitude += temp;
       }
 
       for (i = 0; i < WINDOW_SIZE - BUFFER_SIZE + bufferOffset; i++) {
-         tempExp = -I * 2 * M_PI * frequency * i / WINDOW_SIZE;
+         tempExp = -I * 2 * M_PI * frequency * (i + BUFFER_SIZE - bufferOffset) / WINDOW_SIZE;
          temp = buffer[i] * cexp(tempExp);
          frequencyAmplitude += temp;
       }
