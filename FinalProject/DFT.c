@@ -23,8 +23,6 @@ int main(int argc, char *argv[]) {
 
    bufferRead = sf_read_int(in, buffer, HALF_BUFFER_SIZE); 
 
-   printf("bufferRead: %d\n", bufferRead);
-
    int i = 0;
    while(++i) {
       printf("i: %d\n", i);
@@ -68,8 +66,6 @@ double findOneFrequencyAmplitude(int *buffer, int bufferOffset, double frequency
          tempExp = -I * 2 * M_PI * frequency * i / WINDOW_SIZE;
          temp = buffer[i] * cexp(tempExp);
          frequencyAmplitude += temp;
-
-         // printf("temp %d: %lf + i%lf\n", i, creal(temp), cimag(temp));
       }
    }
 
@@ -79,6 +75,7 @@ double findOneFrequencyAmplitude(int *buffer, int bufferOffset, double frequency
          temp = buffer[i] * cexp(tempExp);
          frequencyAmplitude += temp;
       }
+
       for (i = 0; i < WINDOW_SIZE - BUFFER_SIZE + bufferOffset; i++) {
          tempExp = -I * 2 * M_PI * frequency * i / WINDOW_SIZE;
          temp = buffer[i] * cexp(tempExp);
@@ -86,8 +83,6 @@ double findOneFrequencyAmplitude(int *buffer, int bufferOffset, double frequency
       }
    }
 
-
-   printf("frequencyAmplitude: %lf + i%lf. Amplitude: %lf\n", creal(frequencyAmplitude), cimag(frequencyAmplitude), cabs(frequencyAmplitude));
    return cabs(frequencyAmplitude) / WINDOW_SIZE;
 }
 
@@ -97,6 +92,8 @@ void findAllFrequencyAmplitudes(int *buffer, int bufferOffset) {
 
    for (frequency = 0.0; frequency < MAX_FREQUENCY * 2; frequency = frequency + FREQUENCY_DELTA) {
       frequencyAmplitude = findOneFrequencyAmplitude(buffer, bufferOffset, frequency);
-      printf("Frequency: %lf Amplitude: %lf\n", frequency, frequencyAmplitude);
+      if (frequencyAmplitude > 100) {
+         printf("Frequency: %lf Amplitude: %lf\n", frequency, frequencyAmplitude);
+      }
    }
 }

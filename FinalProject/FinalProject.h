@@ -11,7 +11,7 @@
 #define HALF_BUFFER_SIZE 50000
 #define WINDOW_SIZE 44100
 // MAX_FREQUENCY can be at most half of the total size of the window
-#define MAX_FREQUENCY 22050
+#define MAX_FREQUENCY 200
 #define WINDOW_DELTA 1000
 #define FREQUENCY_DELTA 1.0
 
