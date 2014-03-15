@@ -12,7 +12,7 @@
 #define WINDOW_SIZE 44100
 // MAX_FREQUENCY can be at most half of the total size of the window
 #define MAX_FREQUENCY 22050
-#define WINDOW_DELTA 100
+#define WINDOW_DELTA 1000
 #define FREQUENCY_DELTA 1.0
 
 // Opens a SNDFILE

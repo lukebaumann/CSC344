@@ -5,8 +5,6 @@ int main(int argc, char *argv[]) {
    int bufferOffset = 0;
    int bufferRead = 0;
 
-   SNDFILE *in;
-   SF_INFO *info = malloc(sizeof(SF_INFO));
 
    if (argc < 2) {
       printf("usage: %s fileName\n", argv[0]);
@@ -14,12 +12,22 @@ int main(int argc, char *argv[]) {
    }
 
    char *fileName = argv[1];
+   SNDFILE *in;
+   SF_INFO info;
 
-   openWaveFile(fileName, in, info);
+   if (!(in = sf_open(fileName, SFM_READ, &info))) {
+      fprintf(stderr, "Error opening sound file: %s.\n", fileName);
+      puts(sf_strerror(NULL));
+      exit(-1);
+   }
 
    bufferRead = sf_read_int(in, buffer, HALF_BUFFER_SIZE); 
 
-   while(1) {
+   printf("bufferRead: %d\n", bufferRead);
+
+   int i = 0;
+   while(++i) {
+      printf("i: %d\n", i);
       for (bufferOffset %= BUFFER_SIZE; bufferOffset < bufferRead - WINDOW_SIZE; bufferOffset += WINDOW_DELTA) {
          findAllFrequencyAmplitudes(buffer, bufferOffset);
       }
@@ -41,17 +49,11 @@ int main(int argc, char *argv[]) {
 
    sf_close(in);
    free(buffer);
-   free(info);
 
    return 0;
 }
 
 void openWaveFile(char *inFileName, SNDFILE *in, SF_INFO *info) {
-   if (!(in = sf_open(inFileName, SFM_READ, info))) {
-      fprintf(stderr, "Error opening sound file: %s.\n", inFileName);
-      puts(sf_strerror(NULL));
-      exit(-1);
-   }
 }
 
 double findOneFrequencyAmplitude(int *buffer, int bufferOffset, double frequency) {
