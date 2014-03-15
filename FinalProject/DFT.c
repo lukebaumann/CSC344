@@ -10,28 +10,31 @@
 #define MAX_AMPLITUDE 1000
 #define FREQUENCY_DELTA 1.0
 
+int getBuffer(int *buffer, int bufferSize);
+int fillWindow(int *window, int windowSize, int *buffer, int bufferOffset);
 double findOneFrequencyAmplitude(int *window, int windowSize, double frequency);
+void findAllFrequencyAmplitudes(int *buffer, int bufferSize);
 
 int main() {
    int *buffer = malloc(BUFFER_SIZE * sizeof(int));
-   
+   int bufferSize = 0;
+
+   bufferSize = getBuffer(buffer, BUFFER_SIZE);
+   findAllFrequencyAmplitudes(buffer, bufferSize);
+
+   return 0;
+}
+
+// Fills the buffer with a signal
+// Returns the used size of the buffer
+int getBuffer(int *buffer, int bufferSize) {
    int i = 0;
-   for (i = 0; i < BUFFER_SIZE; i++) {
+   for (i = 0; i < bufferSize; i++) {
       buffer[i] = MAX_AMPLITUDE * (sin(2 * M_PI * 4 * i / BUFFER_SIZE) + sin(2 * M_PI * 23 * i / BUFFER_SIZE));
       //printf("buffer[%d]: %d\n", i, buffer[i]);
    }
 
-   double frequency = 0.0;
-   double frequencyAmplitude = 0.0;
-
-   for (frequency = 0.0; frequency < MAX_FREQUENCY * 2; frequency = frequency + FREQUENCY_DELTA) {
-      frequencyAmplitude = findOneFrequencyAmplitude(buffer, BUFFER_SIZE, frequency);
-      if (frequencyAmplitude > 100) {
-         printf("Frequency: %lf Amplitude: %lf\n", frequency, frequencyAmplitude);
-      }
-   }
-
-   return 0;
+   return i;
 }
 
 // Fills the window with data from the buffer until the window is full or the
@@ -64,4 +67,18 @@ double findOneFrequencyAmplitude(int *window, int windowSize, double frequency) 
 
 //   printf("frequencyAmplitude: %lf + i%lf. Amplitude: %lf\n", creal(frequencyAmplitude), cimag(frequencyAmplitude), cabs(frequencyAmplitude));
    return cabs(frequencyAmplitude);
+}
+
+// Runs finalOneFrequencyAmplitude and does something useful with the
+// amplitudes
+void findAllFrequencyAmplitudes(int *buffer, int bufferSize) {
+   double frequency = 0.0;
+   double frequencyAmplitude = 0.0;
+
+   for (frequency = 0.0; frequency < MAX_FREQUENCY * 2; frequency = frequency + FREQUENCY_DELTA) {
+      frequencyAmplitude = findOneFrequencyAmplitude(buffer, BUFFER_SIZE, frequency);
+      if (frequencyAmplitude > 100) {
+         printf("Frequency: %lf Amplitude: %lf\n", frequency, frequencyAmplitude);
+      }
+   }
 }
