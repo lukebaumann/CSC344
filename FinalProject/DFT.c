@@ -1,84 +1,100 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <complex.h>
-#include <math.h>
+#include "FinalProject.h"
 
-#define BUFFER_SIZE 1000
-#define WINDOW_SIZE 100
-// MAX_FREQUENCY can be at most half of the total size of the window
-#define MAX_FREQUENCY 50
-#define MAX_AMPLITUDE 1000
-#define FREQUENCY_DELTA 1.0
-
-int getBuffer(int *buffer, int bufferSize);
-int fillWindow(int *window, int windowSize, int *buffer, int bufferOffset);
-double findOneFrequencyAmplitude(int *window, int windowSize, double frequency);
-void findAllFrequencyAmplitudes(int *buffer, int bufferSize);
-
-int main() {
+int main(int argc, char *argv[]) {
    int *buffer = malloc(BUFFER_SIZE * sizeof(int));
-   int bufferSize = 0;
+   int bufferOffset = 0;
+   int bufferRead = 0;
 
-   bufferSize = getBuffer(buffer, BUFFER_SIZE);
-   findAllFrequencyAmplitudes(buffer, bufferSize);
+   SNDFILE *in;
+   SF_INFO *info = malloc(sizeof(SF_INFO));
+
+   if (argc < 2) {
+      printf("usage: %s fileName\n", argv[0]);
+      exit(-1);
+   }
+
+   char *fileName = argv[1];
+
+   openWaveFile(fileName, in, info);
+
+   bufferRead = sf_read_int(in, buffer, HALF_BUFFER_SIZE); 
+
+   while(1) {
+      for (bufferOffset %= BUFFER_SIZE; bufferOffset < bufferRead - WINDOW_SIZE; bufferOffset += WINDOW_DELTA) {
+         findAllFrequencyAmplitudes(buffer, bufferOffset);
+      }
+
+      if ((bufferRead = sf_read_int(in, buffer + HALF_BUFFER_SIZE, HALF_BUFFER_SIZE)) < WINDOW_DELTA) {
+         break;
+      }
+      for (; bufferOffset < HALF_BUFFER_SIZE + bufferRead - WINDOW_SIZE; bufferOffset += WINDOW_DELTA) {
+         findAllFrequencyAmplitudes(buffer, bufferOffset);
+      }
+
+      if ((bufferRead = sf_read_int(in, buffer, HALF_BUFFER_SIZE)) < WINDOW_DELTA) {
+         break;
+      }
+      for (; bufferOffset < BUFFER_SIZE; bufferOffset += WINDOW_DELTA) {
+         findAllFrequencyAmplitudes(buffer + HALF_BUFFER_SIZE + bufferOffset, WINDOW_SIZE);
+      }
+   }
+
+   sf_close(in);
+   free(buffer);
+   free(info);
 
    return 0;
 }
 
-// Fills the buffer with a signal
-// Returns the used size of the buffer
-int getBuffer(int *buffer, int bufferSize) {
-   int i = 0;
-   for (i = 0; i < bufferSize; i++) {
-      buffer[i] = MAX_AMPLITUDE * (sin(2 * M_PI * 4 * i / BUFFER_SIZE) + sin(2 * M_PI * 23 * i / BUFFER_SIZE));
-      //printf("buffer[%d]: %d\n", i, buffer[i]);
+void openWaveFile(char *inFileName, SNDFILE *in, SF_INFO *info) {
+   if (!(in = sf_open(inFileName, SFM_READ, info))) {
+      fprintf(stderr, "Error opening sound file: %s.\n", inFileName);
+      puts(sf_strerror(NULL));
+      exit(-1);
    }
-
-   return i;
 }
 
-// Fills the window with data from the buffer until the window is full or the
-// buffer is empty.
-// Returns the number of data points filled in the window
-int fillWindow(int *window, int windowSize, int *buffer, int bufferOffset) {
-   int i = 0;
-   for (i = 0; i < windowSize && buffer[bufferOffset + i]; i++) {
-      window[i] = buffer[bufferOffset + i];
-   }
-
-   return i;
-}
-
-// Computes the DFT for a single frequency using a given window of samples.
-// Returns the amplitude of the given frequency.
-double findOneFrequencyAmplitude(int *window, int windowSize, double frequency) {
-   int i = 0;
+double findOneFrequencyAmplitude(int *buffer, int bufferOffset, double frequency) {
    complex double frequencyAmplitude = 0.0;
    complex double temp = 0.0;
    complex double tempExp = 0.0;
 
-   for (i = 0; i < windowSize; i++) {
-      tempExp = -I * 2 * M_PI * frequency * i / windowSize;
-      temp = window[i] * cexp(tempExp);
-      frequencyAmplitude += temp;
+   int i = 0;
+   if (bufferOffset < BUFFER_SIZE - WINDOW_SIZE) {
 
-//      printf("temp %d: %lf + i%lf\n", i, creal(temp), cimag(temp));
+      for (i = bufferOffset; i < bufferOffset + WINDOW_SIZE; i++) {
+         tempExp = -I * 2 * M_PI * frequency * i / WINDOW_SIZE;
+         temp = buffer[i] * cexp(tempExp);
+         frequencyAmplitude += temp;
+
+         // printf("temp %d: %lf + i%lf\n", i, creal(temp), cimag(temp));
+      }
    }
 
-//   printf("frequencyAmplitude: %lf + i%lf. Amplitude: %lf\n", creal(frequencyAmplitude), cimag(frequencyAmplitude), cabs(frequencyAmplitude));
-   return cabs(frequencyAmplitude);
+   else {
+      for (i = bufferOffset; i < BUFFER_SIZE; i++) {
+         tempExp = -I * 2 * M_PI * frequency * i / WINDOW_SIZE;
+         temp = buffer[i] * cexp(tempExp);
+         frequencyAmplitude += temp;
+      }
+      for (i = 0; i < WINDOW_SIZE - BUFFER_SIZE + bufferOffset; i++) {
+         tempExp = -I * 2 * M_PI * frequency * i / WINDOW_SIZE;
+         temp = buffer[i] * cexp(tempExp);
+         frequencyAmplitude += temp;
+      }
+   }
+
+
+   printf("frequencyAmplitude: %lf + i%lf. Amplitude: %lf\n", creal(frequencyAmplitude), cimag(frequencyAmplitude), cabs(frequencyAmplitude));
+   return cabs(frequencyAmplitude) / WINDOW_SIZE;
 }
 
-// Runs finalOneFrequencyAmplitude and does something useful with the
-// amplitudes
-void findAllFrequencyAmplitudes(int *buffer, int bufferSize) {
+void findAllFrequencyAmplitudes(int *buffer, int bufferOffset) {
    double frequency = 0.0;
    double frequencyAmplitude = 0.0;
 
    for (frequency = 0.0; frequency < MAX_FREQUENCY * 2; frequency = frequency + FREQUENCY_DELTA) {
-      frequencyAmplitude = findOneFrequencyAmplitude(buffer, BUFFER_SIZE, frequency);
-      if (frequencyAmplitude > 100) {
-         printf("Frequency: %lf Amplitude: %lf\n", frequency, frequencyAmplitude);
-      }
+      frequencyAmplitude = findOneFrequencyAmplitude(buffer, bufferOffset, frequency);
+      printf("Frequency: %lf Amplitude: %lf\n", frequency, frequencyAmplitude);
    }
 }
