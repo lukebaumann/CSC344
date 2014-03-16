@@ -1,7 +1,7 @@
 #include "FinalProject.h"
 
 int main(int argc, char *argv[]) {
-   int *buffer = malloc(BUFFER_SIZE * sizeof(int));
+   double *buffer = malloc(BUFFER_SIZE * sizeof(double));
    int bufferOffset = 0;
    int bufferRead = 0;
 
@@ -20,35 +20,33 @@ int main(int argc, char *argv[]) {
       puts(sf_strerror(NULL));
       exit(-1);
    }
+   else {
+      printf("Successful open\n");
+   }
 
-   bufferRead = sf_read_int(in, buffer, HALF_BUFFER_SIZE); 
+   bufferRead = sf_read_double(in, buffer, HALF_BUFFER_SIZE); 
 
    int i = 0;
    while(++i) {
-      printf("i: %d\n", i);
       for (bufferOffset %= BUFFER_SIZE; bufferOffset < bufferRead - WINDOW_SIZE; bufferOffset += WINDOW_DELTA) {
          findAllFrequencyAmplitudes(buffer, bufferOffset);
       }
-      printf("1\n");
 
-      if ((bufferRead = sf_read_int(in, buffer + HALF_BUFFER_SIZE, HALF_BUFFER_SIZE)) < WINDOW_DELTA) {
+      if ((bufferRead = sf_read_double(in, buffer + HALF_BUFFER_SIZE, HALF_BUFFER_SIZE)) < WINDOW_DELTA) {
          break;
       }
 
-      printf("2\n");
       for (; bufferOffset < HALF_BUFFER_SIZE + bufferRead - WINDOW_SIZE; bufferOffset += WINDOW_DELTA) {
          findAllFrequencyAmplitudes(buffer, bufferOffset);
       }
 
-      printf("3\n");
-      if ((bufferRead = sf_read_int(in, buffer, HALF_BUFFER_SIZE)) < WINDOW_DELTA) {
+      if ((bufferRead = sf_read_double(in, buffer, HALF_BUFFER_SIZE)) < WINDOW_DELTA) {
          break;
       }
       for (; bufferOffset < BUFFER_SIZE; bufferOffset += WINDOW_DELTA) {
          findAllFrequencyAmplitudes(buffer, bufferOffset);
       }
 
-      printf("4\n");
    }
 
    sf_close(in);
@@ -60,7 +58,7 @@ int main(int argc, char *argv[]) {
 void openWaveFile(char *inFileName, SNDFILE *in, SF_INFO *info) {
 }
 
-double findOneFrequencyAmplitude(int *buffer, int bufferOffset, double frequency) {
+double findOneFrequencyAmplitude(double *buffer, int bufferOffset, double frequency) {
    complex double frequencyAmplitude = 0.0;
    complex double temp = 0.0;
    complex double tempExp = 0.0;
@@ -89,17 +87,24 @@ double findOneFrequencyAmplitude(int *buffer, int bufferOffset, double frequency
       }
    }
 
-   return cabs(frequencyAmplitude) / WINDOW_SIZE;
+   return cabs(frequencyAmplitude);
 }
 
-void findAllFrequencyAmplitudes(int *buffer, int bufferOffset) {
+
+void findAllFrequencyAmplitudes(double *buffer, int bufferOffset) {
    double frequency = 0.0;
    double frequencyAmplitude = 0.0;
+   double maxFrequency = 0.0;
+   double maxFrequencyAmplitude = 0.0;
 
    for (frequency = 0.0; frequency < MAX_FREQUENCY * 2; frequency = frequency + FREQUENCY_DELTA) {
       frequencyAmplitude = findOneFrequencyAmplitude(buffer, bufferOffset, frequency);
-      if (frequencyAmplitude > 100) {
-         printf("Frequency: %lf Amplitude: %lf\n", frequency, frequencyAmplitude);
+
+      if (frequencyAmplitude > maxFrequencyAmplitude) {
+         maxFrequency = frequency;
+         maxFrequencyAmplitude = frequencyAmplitude;
       }
    }
+
+   printf("Max Frequency: %lf Amplitude: %lf\n", maxFrequency, maxFrequencyAmplitude);
 }
