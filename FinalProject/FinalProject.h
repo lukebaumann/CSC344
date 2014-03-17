@@ -19,7 +19,7 @@
 void openWaveFile(char *inFileName, SNDFILE *in, SF_INFO *info);
 // Computes the DFT for a single frequency using a given window of samples.
 // Returns the amplitude of the given frequency.
-double DFT(double *buffer, int bufferSize, double frequency);
+double DFT(double *buffer, int bufferSize, int frequency);
 // Runs DFT for all the frequencies and does something useful with the
 // amplitudes
 void DFTAll(double *buffer, int bufferSize);

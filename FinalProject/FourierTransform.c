@@ -63,10 +63,25 @@ int main(int argc, char *argv[]) {
    return 0;
 }
 
-void openWaveFile(char *inFileName, SNDFILE *in, SF_INFO *info) {
+void DFTAll(double *buffer, int bufferOffset) {
+   double frequencyAmplitude = 0.0;
+   double maxFrequency = 0.0;
+   double maxFrequencyAmplitude = 0.0;
+
+   int i = 0;
+   for (i = 0; i < WINDOW_SIZE / 2; i++) {
+      frequencyAmplitude = DFT(buffer, bufferOffset, i);
+
+      if (frequencyAmplitude > maxFrequencyAmplitude) {
+         maxFrequency = i;
+         maxFrequencyAmplitude = frequencyAmplitude;
+      }
+   }
+
+   printf("Max Frequency: %lf Amplitude: %lf\n", maxFrequency * 44100 / WINDOW_SIZE, maxFrequencyAmplitude);
 }
 
-double DFT(double *buffer, int bufferOffset, double frequency) {
+double DFT(double *buffer, int bufferOffset, int frequency) {
    complex double frequencyAmplitude = 0.0;
    complex double temp = 0.0;
    complex double tempExp = 0.0;
@@ -118,9 +133,6 @@ void FFTAll(double *buffer, int bufferOffset) {
    }
   */
 
-
-
-
    int i = 0;
    for (i = 0; i < WINDOW_SIZE / 2; i++) {
       if (cabs(frequencyBuffer[i]) > maxFrequencyAmplitude) {
@@ -160,22 +172,3 @@ void FFT(double *window, int windowSize, int stride, complex double *frequencyBu
    }
 }
 
-
-
-void DFTAll(double *buffer, int bufferOffset) {
-   double frequency = 0.0;
-   double frequencyAmplitude = 0.0;
-   double maxFrequency = 0.0;
-   double maxFrequencyAmplitude = 0.0;
-
-   for (frequency = 0.0; frequency < WINDOW_SIZE; frequency = frequency + FREQUENCY_DELTA) {
-      frequencyAmplitude = DFT(buffer, bufferOffset, frequency);
-
-      if (frequencyAmplitude > maxFrequencyAmplitude) {
-         maxFrequency = frequency;
-         maxFrequencyAmplitude = frequencyAmplitude;
-      }
-   }
-
-   printf("Max Frequency: %lf Amplitude: %lf\n", maxFrequency, maxFrequencyAmplitude);
-}
