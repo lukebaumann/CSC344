@@ -96,8 +96,8 @@ void FFTAll(double *buffer, int bufferOffset) {
    double maxFrequency = 0.0;
    double maxFrequencyAmplitude = 0.0;
 
-   FFT(buffer + bufferOffset, WINDOW_SIZE, 1, frequencyBuffer);
-   /*
+   //FFT(buffer + bufferOffset, WINDOW_SIZE, 1, frequencyBuffer);
+   
    int j = 0;
    double testBuffer[1000];
    complex double testFrequencyBuffer[1000];
@@ -106,11 +106,11 @@ void FFTAll(double *buffer, int bufferOffset) {
       testBuffer[j] = j; 
    }
 
-   FFT(testBuffer, 4, 1, testFrequencyBuffer);
-   for (j = 0; j < 4; j++) {
+   FFT(testBuffer, 8, 1, testFrequencyBuffer);
+   for (j = 0; j < 8; j++) {
       printf("Frequency: %d FFT: %lf\n", j, creal(testFrequencyBuffer[j]));
    }
-  */
+  /*
 
 
 
@@ -125,6 +125,7 @@ void FFTAll(double *buffer, int bufferOffset) {
    }
 
    printf("Max Frequency: %lf Amplitude: %lf\n", maxFrequency * 44100 / WINDOW_SIZE, maxFrequencyAmplitude);
+   */
 }
 
 void FFT(double *window, int windowSize, int stride, complex double *frequencyBuffer) {
@@ -135,25 +136,23 @@ void FFT(double *window, int windowSize, int stride, complex double *frequencyBu
       printf("ASDF\n"); 
    }
    else {
-      complex double *result = malloc(sizeof(complex double) * windowSize / 2);
+      complex double *result = malloc(sizeof(complex double) * windowSize);
 
       FFT(window, windowSize / 2, 2 * stride, result);
-      memcpy(frequencyBuffer, result, sizeof(complex double) * windowSize / 2); 
-      FFT(window + stride, windowSize / 2, 2 * stride, result);
-      memcpy(frequencyBuffer + windowSize / 2, result, sizeof(complex double) * windowSize / 2);
+      FFT(window + stride, windowSize / 2, 2 * stride, result + windowSize / 2);
 
-      free(result);
-      
       int i = 0;
       complex double temp = 0.0;
 
       for (i = 0;  i < windowSize / 2; i++) {
-         temp = frequencyBuffer[i];
-         frequencyBuffer[i] = temp + frequencyBuffer[i + windowSize / 2];
-         frequencyBuffer[i + windowSize / 2] = temp - frequencyBuffer[i + windowSize / 2];
-         //frequencyBuffer[i] = temp + cexp(-I * 2 * M_PI * i / windowSize) * frequencyBuffer[i + windowSize / 2];
-         //frequencyBuffer[i + windowSize / 2] = temp - cexp(-I * 2 * M_PI * i / windowSize) * frequencyBuffer[i + windowSize / 2];
+         temp = result[i];
+         frequencyBuffer[i] = temp + result[i + windowSize / 2];
+         frequencyBuffer[i + windowSize / 2] = temp - result[i + windowSize / 2];
+         //frequencyBuffer[i] = temp + cexp(-I * 2 * M_PI * i / windowSize) * result[i + windowSize / 2];
+         //frequencyBuffer[i + windowSize / 2] = temp - cexp(-I * 2 * M_PI * i / windowSize) * result[i + windowSize / 2];
       }
+
+      free(result);
    }
 }
 
