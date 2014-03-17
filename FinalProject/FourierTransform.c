@@ -33,6 +33,14 @@ int main(int argc, char *argv[]) {
    }
 
    bufferRead = sf_read_double(in, buffer, THIRD_BUFFER_SIZE); 
+   if (bufferRead == 0) {
+      printf("Read no data.\n");
+   }
+   else if (bufferRead < 0) {
+      fprintf(stderr, "Error on read\n");
+      puts(sf_strerror(NULL));
+      exit(-1);
+   }
 
    int i = 0;
    while(++i) {
@@ -41,6 +49,7 @@ int main(int argc, char *argv[]) {
       }
 
       if ((bufferRead = sf_read_double(in, buffer + THIRD_BUFFER_SIZE, THIRD_BUFFER_SIZE)) < WINDOW_DELTA) {
+         //printf("Broke at 1\n");
          break;
       }
 
@@ -49,6 +58,7 @@ int main(int argc, char *argv[]) {
       }
 
       if ((bufferRead = sf_read_double(in, buffer + 2 * THIRD_BUFFER_SIZE, THIRD_BUFFER_SIZE)) < WINDOW_DELTA) {
+         //printf("Broke at 2\n");
          break;
       }
       memcpy(buffer, buffer + 2 * THIRD_BUFFER_SIZE, THIRD_BUFFER_SIZE);
