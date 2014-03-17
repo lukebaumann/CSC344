@@ -5,8 +5,7 @@ int main(int argc, char *argv[]) {
    int bufferOffset = 0;
    int bufferRead = 0;
 
-   void (*fourierTransform)(double *, int) = &DFTAll; 
-
+   void (*fourierTransform)(double *, int) = &FFTAll; 
 
    if (argc < 2) {
       printf("usage: %s fileName\n", argv[0]);
@@ -94,41 +93,68 @@ double DFT(double *buffer, int bufferOffset, double frequency) {
 
 void FFTAll(double *buffer, int bufferOffset) {
    complex double frequencyBuffer[WINDOW_SIZE];
+   double maxFrequency = 0.0;
+   double maxFrequencyAmplitude = 0.0;
 
-   FFT(buffer, bufferOffset, WINDOW_SIZE, 1, frequencyBuffer, 0);
+   FFT(buffer + bufferOffset, WINDOW_SIZE, 1, frequencyBuffer);
+   /*
+   int j = 0;
+   double testBuffer[1000];
+   complex double testFrequencyBuffer[1000];
+   for (j = 0; j < 1000; j++) {
+      //testBuffer[j] = sin(2 * M_PI * j / 250);
+      testBuffer[j] = j; 
+   }
+
+   FFT(testBuffer, 4, 1, testFrequencyBuffer);
+   for (j = 0; j < 4; j++) {
+      printf("Frequency: %d FFT: %lf\n", j, creal(testFrequencyBuffer[j]));
+   }
+  */
+
+
+
 
    int i = 0;
    for (i = 0; i < WINDOW_SIZE; i++) {
-      printf("Frequency: %d Amplitude: %lf\n", i, cabs(frequencyBuffer[i]));
+      if (cabs(frequencyBuffer[i]) > maxFrequencyAmplitude) {
+         maxFrequency = i;
+         maxFrequencyAmplitude = cabs(frequencyBuffer[i]);
+      }
+      printf("f: %d, a: %lf\n", i, cabs(frequencyBuffer[i]));
    }
 
+   printf("Max Frequency: %lf Amplitude: %lf\n", maxFrequency, maxFrequencyAmplitude);
 }
 
-int FFT(double *window, int windowOffset, int windowSize, int stride, complex double *frequencyBuffer, int frequencyIndex) {
-   int nextFrequencyIndex = 0;
-
+void FFT(double *window, int windowSize, int stride, complex double *frequencyBuffer) {
    if (windowSize == 1) {
-      frequencyBuffer[frequencyIndex] = window[windowOffset];
-      nextFrequencyIndex = frequencyIndex + 1;
+      frequencyBuffer[0] = window[0];
    }
    else if (windowSize == 0) {
       printf("ASDF\n"); 
    }
    else {
-      nextFrequencyIndex = FFT(window, windowOffset, windowSize / 2, 2 * stride, frequencyBuffer, frequencyIndex);
-      nextFrequencyIndex = FFT(window, windowOffset + stride, windowSize / 2, 2 * stride, frequencyBuffer, nextFrequencyIndex);
+      complex double *result = malloc(sizeof(complex double) * windowSize / 2);
+
+      FFT(window, windowSize / 2, 2 * stride, result);
+      memcpy(frequencyBuffer, result, sizeof(complex double) * windowSize / 2); 
+      FFT(window + stride, windowSize / 2, 2 * stride, result);
+      memcpy(frequencyBuffer + windowSize / 2, result, sizeof(complex double) * windowSize / 2);
+
+      free(result);
       
       int i = 0;
       complex double temp = 0.0;
 
-      for (i = 0; i < windowSize / 2; i++) {
+      for (i = 0;  i < windowSize / 2; i++) {
          temp = frequencyBuffer[i];
-         frequencyBuffer[i] = temp + cexp(-I * 2 * M_PI * i / windowSize) * frequencyBuffer[i + windowSize / 2];
-         frequencyBuffer[i + windowSize / 2] = temp - cexp(-I * 2 * M_PI * i / windowSize) * frequencyBuffer[i + windowSize / 2];
+         frequencyBuffer[i] = temp + frequencyBuffer[i + windowSize / 2];
+         frequencyBuffer[i + windowSize / 2] = temp - frequencyBuffer[i + windowSize / 2];
+         //frequencyBuffer[i] = temp + cexp(-I * 2 * M_PI * i / windowSize) * frequencyBuffer[i + windowSize / 2];
+         //frequencyBuffer[i + windowSize / 2] = temp - cexp(-I * 2 * M_PI * i / windowSize) * frequencyBuffer[i + windowSize / 2];
       }
    }
-
-   return nextFrequencyIndex;
 }
 
 
