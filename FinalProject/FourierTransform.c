@@ -32,27 +32,29 @@ int main(int argc, char *argv[]) {
       printf("Successful open\n");
    }
 
-   bufferRead = sf_read_double(in, buffer, HALF_BUFFER_SIZE); 
+   bufferRead = sf_read_double(in, buffer, THIRD_BUFFER_SIZE); 
 
    int i = 0;
    while(++i) {
-      for (bufferOffset %= BUFFER_SIZE; bufferOffset < bufferRead - WINDOW_SIZE; bufferOffset += WINDOW_DELTA) {
-         (*fourierTransform)(buffer, bufferOffset);
+      for (bufferOffset %= 2 * THIRD_BUFFER_SIZE; bufferOffset < bufferRead - WINDOW_SIZE; bufferOffset += WINDOW_DELTA) {
+         (*fourierTransform)(buffer + bufferOffset, WINDOW_SIZE);
       }
 
-      if ((bufferRead = sf_read_double(in, buffer + HALF_BUFFER_SIZE, HALF_BUFFER_SIZE)) < WINDOW_DELTA) {
+      if ((bufferRead = sf_read_double(in, buffer + THIRD_BUFFER_SIZE, THIRD_BUFFER_SIZE)) < WINDOW_DELTA) {
          break;
       }
 
-      for (; bufferOffset < HALF_BUFFER_SIZE + bufferRead - WINDOW_SIZE; bufferOffset += WINDOW_DELTA) {
-         (*fourierTransform)(buffer, bufferOffset);
+      for (; bufferOffset < THIRD_BUFFER_SIZE + bufferRead - WINDOW_SIZE; bufferOffset += WINDOW_DELTA) {
+         (*fourierTransform)(buffer + bufferOffset, WINDOW_SIZE);
       }
 
-      if ((bufferRead = sf_read_double(in, buffer, HALF_BUFFER_SIZE)) < WINDOW_DELTA) {
+      if ((bufferRead = sf_read_double(in, buffer + 2 * THIRD_BUFFER_SIZE, THIRD_BUFFER_SIZE)) < WINDOW_DELTA) {
          break;
       }
-      for (; bufferOffset < BUFFER_SIZE; bufferOffset += WINDOW_DELTA) {
-         (*fourierTransform)(buffer, bufferOffset);
+      memcpy(buffer, buffer + 2 * THIRD_BUFFER_SIZE, THIRD_BUFFER_SIZE);
+
+      for (; bufferOffset < 2 * THIRD_BUFFER_SIZE; bufferOffset += WINDOW_DELTA) {
+         (*fourierTransform)(buffer + bufferOffset, WINDOW_SIZE);
       }
 
    }
@@ -63,14 +65,14 @@ int main(int argc, char *argv[]) {
    return 0;
 }
 
-void DFTAll(double *buffer, int bufferOffset) {
+void DFTAll(double *window, int windowSize) {
    double frequencyAmplitude = 0.0;
    double maxFrequency = 0.0;
    double maxFrequencyAmplitude = 0.0;
 
    int i = 0;
-   for (i = 0; i < WINDOW_SIZE / 2; i++) {
-      frequencyAmplitude = DFT(buffer, bufferOffset, i);
+   for (i = 0; i < windowSize / 2; i++) {
+      frequencyAmplitude = DFT(window, windowSize, i);
 
       if (frequencyAmplitude > maxFrequencyAmplitude) {
          maxFrequency = i;
@@ -78,47 +80,30 @@ void DFTAll(double *buffer, int bufferOffset) {
       }
    }
 
-   printf("Max Frequency: %lf Amplitude: %lf\n", maxFrequency * 44100 / WINDOW_SIZE, maxFrequencyAmplitude);
+   printf("Max Frequency: %lf Amplitude: %lf\n", maxFrequency * SAMPLE_RATE / windowSize, maxFrequencyAmplitude);
 }
 
-double DFT(double *buffer, int bufferOffset, int frequency) {
+double DFT(double *window, int windowSize, int frequency) {
    complex double frequencyAmplitude = 0.0;
    complex double temp = 0.0;
    complex double tempExp = 0.0;
 
    int i = 0;
-   if (bufferOffset < BUFFER_SIZE - WINDOW_SIZE) {
-
-      for (i = 0; i < WINDOW_SIZE; i++) {
-         tempExp = -I * 2 * M_PI * frequency * i / WINDOW_SIZE;
-         temp = buffer[i + bufferOffset] * cexp(tempExp);
-         frequencyAmplitude += temp;
-      }
-   }
-
-   else {
-      for (i = 0; i < BUFFER_SIZE - bufferOffset; i++) {
-         tempExp = -I * 2 * M_PI * frequency * i / WINDOW_SIZE;
-         temp = buffer[i + bufferOffset] * cexp(tempExp);
-         frequencyAmplitude += temp;
-      }
-
-      for (i = 0; i < WINDOW_SIZE - BUFFER_SIZE + bufferOffset; i++) {
-         tempExp = -I * 2 * M_PI * frequency * (i + BUFFER_SIZE - bufferOffset) / WINDOW_SIZE;
-         temp = buffer[i] * cexp(tempExp);
-         frequencyAmplitude += temp;
-      }
+   for (i = 0; i < windowSize; i++) {
+      tempExp = -I * 2 * M_PI * frequency * i / windowSize;
+      temp = window[i] * cexp(tempExp);
+      frequencyAmplitude += temp;
    }
 
    return cabs(frequencyAmplitude);
 }
 
-void FFTAll(double *buffer, int bufferOffset) {
+void FFTAll(double *window, int windowSize) {
    complex double frequencyBuffer[WINDOW_SIZE];
    double maxFrequency = 0.0;
    double maxFrequencyAmplitude = 0.0;
 
-   FFT(buffer + bufferOffset, WINDOW_SIZE, 1, frequencyBuffer);
+   FFT(window, windowSize, 1, frequencyBuffer);
    
    /*int j = 0;
    double testBuffer[100000];
@@ -134,7 +119,7 @@ void FFTAll(double *buffer, int bufferOffset) {
   */
 
    int i = 0;
-   for (i = 0; i < WINDOW_SIZE / 2; i++) {
+   for (i = 0; i < windowSize / 2; i++) {
       if (cabs(frequencyBuffer[i]) > maxFrequencyAmplitude) {
          maxFrequency = i;
          maxFrequencyAmplitude = cabs(frequencyBuffer[i]);
@@ -142,7 +127,7 @@ void FFTAll(double *buffer, int bufferOffset) {
       //printf("f: %d, a: %lf\n", i * 44100 / WINDOW_SIZE, cabs(frequencyBuffer[i]));
    }
 
-   printf("Max Frequency: %lf Amplitude: %lf\n", maxFrequency * 44100 / WINDOW_SIZE, maxFrequencyAmplitude);
+   printf("Max Frequency: %lf Amplitude: %lf\n", maxFrequency * SAMPLE_RATE / windowSize, maxFrequencyAmplitude);
 }
 
 void FFT(double *window, int windowSize, int stride, complex double *frequencyBuffer) {
