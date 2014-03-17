@@ -99,7 +99,7 @@ void FFTAll(double *buffer, int bufferOffset) {
 
    int i = 0;
    for (i = 0; i < WINDOW_SIZE; i++) {
-      print("Frequency: %d Amplitude: %lf\n", i, frequencyBuffer[i]);
+      printf("Frequency: %d Amplitude: %lf\n", i, frequencyBuffer[i]);
    }
 
 }
@@ -114,10 +114,10 @@ void FFT(double *window, int windowOffset, int windowSize, int stride, double *f
       
       int i = 0;
       double temp = 0.0;
-      for (i = 0; i < bufferSize / 2; i++) {
+      for (i = 0; i < windowSize / 2; i++) {
          temp = frequencyBuffer[i];
-         frequencyBuffer[i] = temp + cexp(-I * 2 * M_PI * i / bufferSize) * frequencyBuffer[i + bufferSize / 2];
-         frequencyBuffer[i + bufferSize / 2] = temp - cexp(-I * 2 * M_PI * i / bufferSize) * frequencyBuffer[i + bufferSize / 2];
+         frequencyBuffer[i] = temp + cexp(-I * 2 * M_PI * i / windowSize) * frequencyBuffer[i + windowSize / 2];
+         frequencyBuffer[i + windowSize / 2] = temp - cexp(-I * 2 * M_PI * i / windowSize) * frequencyBuffer[i + windowSize / 2];
       }
    }
 }

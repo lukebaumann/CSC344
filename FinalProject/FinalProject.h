@@ -24,5 +24,10 @@ double DFT(double *buffer, int bufferSize, double frequency);
 // Runs DFT for all the frequencies and does something useful with the
 // amplitudes
 void DFTAll(double *buffer, int bufferSize);
+// Computes the Cooley-Tukey FFT. Divides and conquers the DFT recursively.
+void FFT(double *window, int windowOffset, int windowSize, int stride, double *frequencyBuffer);
+// Runs FFT for all the frequencies and does something useful with the
+// amplitudes
+void FFTAll(double *buffer, int bufferSize);
 
 #endif
