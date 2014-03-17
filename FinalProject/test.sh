@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PROGRAM_NAME="DFT"
+PROGRAM_NAME="FourierTransform"
 OUTPUT_NAME="test.out"
 
 echo "Compiling program..."
