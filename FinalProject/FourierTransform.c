@@ -121,10 +121,10 @@ void FFTAll(double *buffer, int bufferOffset) {
          maxFrequency = i;
          maxFrequencyAmplitude = cabs(frequencyBuffer[i]);
       }
-      printf("f: %d, a: %lf\n", i, cabs(frequencyBuffer[i]));
+      printf("f: %d, a: %lf\n", i * 44100 / WINDOW_SIZE, cabs(frequencyBuffer[i]));
    }
 
-   printf("Max Frequency: %lf Amplitude: %lf\n", maxFrequency, maxFrequencyAmplitude);
+   printf("Max Frequency: %lf Amplitude: %lf\n", maxFrequency * 44100 / WINDOW_SIZE, maxFrequencyAmplitude);
 }
 
 void FFT(double *window, int windowSize, int stride, complex double *frequencyBuffer) {
