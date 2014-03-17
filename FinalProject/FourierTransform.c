@@ -5,11 +5,18 @@ int main(int argc, char *argv[]) {
    int bufferOffset = 0;
    int bufferRead = 0;
 
-   void (*fourierTransform)(double *, int) = &FFTAll; 
-
    if (argc < 2) {
-      printf("usage: %s fileName\n", argv[0]);
+      printf("usage: %s fileName [optional -d for DFT]\n", argv[0]);
       exit(-1);
+   }
+
+   void (*fourierTransform)(double *, int);
+
+   if (argc > 2 && !strcmp(argv[2], "-d")) {
+      fourierTransform = &DFTAll;
+   }
+   else {
+      fourierTransform = &FFTAll;
    }
 
    char *fileName = argv[1];
@@ -96,36 +103,34 @@ void FFTAll(double *buffer, int bufferOffset) {
    double maxFrequency = 0.0;
    double maxFrequencyAmplitude = 0.0;
 
-   //FFT(buffer + bufferOffset, WINDOW_SIZE, 1, frequencyBuffer);
+   FFT(buffer + bufferOffset, WINDOW_SIZE, 1, frequencyBuffer);
    
-   int j = 0;
-   double testBuffer[1000];
-   complex double testFrequencyBuffer[1000];
-   for (j = 0; j < 1000; j++) {
-      //testBuffer[j] = sin(2 * M_PI * j / 250);
-      testBuffer[j] = j; 
+   /*int j = 0;
+   double testBuffer[100000];
+   complex double testFrequencyBuffer[100000];
+   for (j = 0; j < 100000; j++) {
+      testBuffer[j] = sin(2 * M_PI * 30 * j / SAMPLE_RATE);
    }
 
-   FFT(testBuffer, 8, 1, testFrequencyBuffer);
-   for (j = 0; j < 8; j++) {
-      printf("Frequency: %d FFT: %lf\n", j, creal(testFrequencyBuffer[j]));
+   FFT(testBuffer, WINDOW_SIZE, 1, testFrequencyBuffer);
+   for (j = 0; j < WINDOW_SIZE; j++) {
+      printf("Frequency: %0.4lf FFT: %0.4lf\n", j * (double)(SAMPLE_RATE) / WINDOW_SIZE, cabs(testFrequencyBuffer[j]));
    }
-  /*
+  */
 
 
 
 
    int i = 0;
-   for (i = 0; i < WINDOW_SIZE; i++) {
+   for (i = 0; i < WINDOW_SIZE / 2; i++) {
       if (cabs(frequencyBuffer[i]) > maxFrequencyAmplitude) {
          maxFrequency = i;
          maxFrequencyAmplitude = cabs(frequencyBuffer[i]);
       }
-      printf("f: %d, a: %lf\n", i * 44100 / WINDOW_SIZE, cabs(frequencyBuffer[i]));
+      //printf("f: %d, a: %lf\n", i * 44100 / WINDOW_SIZE, cabs(frequencyBuffer[i]));
    }
 
    printf("Max Frequency: %lf Amplitude: %lf\n", maxFrequency * 44100 / WINDOW_SIZE, maxFrequencyAmplitude);
-   */
 }
 
 void FFT(double *window, int windowSize, int stride, complex double *frequencyBuffer) {
@@ -145,11 +150,10 @@ void FFT(double *window, int windowSize, int stride, complex double *frequencyBu
       complex double temp = 0.0;
 
       for (i = 0;  i < windowSize / 2; i++) {
-         temp = result[i];
-         frequencyBuffer[i] = temp + result[i + windowSize / 2];
-         frequencyBuffer[i + windowSize / 2] = temp - result[i + windowSize / 2];
-         //frequencyBuffer[i] = temp + cexp(-I * 2 * M_PI * i / windowSize) * result[i + windowSize / 2];
-         //frequencyBuffer[i + windowSize / 2] = temp - cexp(-I * 2 * M_PI * i / windowSize) * result[i + windowSize / 2];
+         //frequencyBuffer[i] = result[i] + result[i + windowSize / 2];
+         //frequencyBuffer[i + windowSize / 2] = result[i] - result[i + windowSize / 2];
+         frequencyBuffer[i] = result[i] + cexp(-I * 2 * M_PI * i / windowSize) * result[i + windowSize / 2];
+         frequencyBuffer[i + windowSize / 2] = result[i] - cexp(-I * 2 * M_PI * i / windowSize) * result[i + windowSize / 2];
       }
 
       free(result);
