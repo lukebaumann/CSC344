@@ -5,7 +5,7 @@ int main(int argc, char *argv[]) {
    int bufferOffset = 0;
    int bufferRead = 0;
 
-   void (*fourierTransform)(double *, int) = &FFTAll; 
+   void (*fourierTransform)(double *, int) = &DFTAll; 
 
 
    if (argc < 2) {
@@ -93,33 +93,42 @@ double DFT(double *buffer, int bufferOffset, double frequency) {
 }
 
 void FFTAll(double *buffer, int bufferOffset) {
-   double frequencyBuffer[WINDOW_SIZE / 2];
+   complex double frequencyBuffer[WINDOW_SIZE];
 
-   FFT(buffer, bufferOffset, WINDOW_SIZE, 1, frequencyBuffer);
+   FFT(buffer, bufferOffset, WINDOW_SIZE, 1, frequencyBuffer, 0);
 
    int i = 0;
    for (i = 0; i < WINDOW_SIZE; i++) {
-      printf("Frequency: %d Amplitude: %lf\n", i, frequencyBuffer[i]);
+      printf("Frequency: %d Amplitude: %lf\n", i, cabs(frequencyBuffer[i]));
    }
 
 }
 
-void FFT(double *window, int windowOffset, int windowSize, int stride, double *frequencyBuffer) {
+int FFT(double *window, int windowOffset, int windowSize, int stride, complex double *frequencyBuffer, int frequencyIndex) {
+   int nextFrequencyIndex = 0;
+
    if (windowSize == 1) {
-      frequencyBuffer[windowOffset] = window[windowOffset];
+      frequencyBuffer[frequencyIndex] = window[windowOffset];
+      nextFrequencyIndex = frequencyIndex + 1;
+   }
+   else if (windowSize == 0) {
+      printf("ASDF\n"); 
    }
    else {
-      FFT(window, windowOffset, windowSize / 2, 2 * stride, frequencyBuffer);
-      FFT(window, windowOffset + stride, windowSize / 2, 2 * stride, frequencyBuffer);
+      nextFrequencyIndex = FFT(window, windowOffset, windowSize / 2, 2 * stride, frequencyBuffer, frequencyIndex);
+      nextFrequencyIndex = FFT(window, windowOffset + stride, windowSize / 2, 2 * stride, frequencyBuffer, nextFrequencyIndex);
       
       int i = 0;
-      double temp = 0.0;
+      complex double temp = 0.0;
+
       for (i = 0; i < windowSize / 2; i++) {
          temp = frequencyBuffer[i];
          frequencyBuffer[i] = temp + cexp(-I * 2 * M_PI * i / windowSize) * frequencyBuffer[i + windowSize / 2];
          frequencyBuffer[i + windowSize / 2] = temp - cexp(-I * 2 * M_PI * i / windowSize) * frequencyBuffer[i + windowSize / 2];
       }
    }
+
+   return nextFrequencyIndex;
 }
 
 
@@ -130,7 +139,7 @@ void DFTAll(double *buffer, int bufferOffset) {
    double maxFrequency = 0.0;
    double maxFrequencyAmplitude = 0.0;
 
-   for (frequency = 0.0; frequency < MAX_FREQUENCY * 2; frequency = frequency + FREQUENCY_DELTA) {
+   for (frequency = 0.0; frequency < WINDOW_SIZE; frequency = frequency + FREQUENCY_DELTA) {
       frequencyAmplitude = DFT(buffer, bufferOffset, frequency);
 
       if (frequencyAmplitude > maxFrequencyAmplitude) {

@@ -9,11 +9,10 @@
 
 #define BUFFER_SIZE 100000
 #define HALF_BUFFER_SIZE 50000
-#define WINDOW_SIZE 44100
+#define WINDOW_SIZE 22050
 //#define SAMPLE_RATE 44100
 // MAX_FREQUENCY can be at most half of the total size of the window
-#define MAX_FREQUENCY 2100
-#define WINDOW_DELTA 22050
+#define WINDOW_DELTA 11025
 #define FREQUENCY_DELTA 1.0
 
 // Opens a SNDFILE
@@ -25,7 +24,8 @@ double DFT(double *buffer, int bufferSize, double frequency);
 // amplitudes
 void DFTAll(double *buffer, int bufferSize);
 // Computes the Cooley-Tukey FFT. Divides and conquers the DFT recursively.
-void FFT(double *window, int windowOffset, int windowSize, int stride, double *frequencyBuffer);
+// Returns the next frequency index to use
+int FFT(double *window, int windowOffset, int windowSize, int stride, complex double *frequencyBuffer, int frequencyIndex);
 // Runs FFT for all the frequencies and does something useful with the
 // amplitudes
 void FFTAll(double *buffer, int bufferSize);
