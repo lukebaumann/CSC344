@@ -5,6 +5,8 @@ int main(int argc, char *argv[]) {
    int bufferOffset = 0;
    int bufferRead = 0;
 
+   void (*fourierTransform)(double *, int) = &FFTAll; 
+
 
    if (argc < 2) {
       printf("usage: %s fileName\n", argv[0]);
@@ -29,7 +31,7 @@ int main(int argc, char *argv[]) {
    int i = 0;
    while(++i) {
       for (bufferOffset %= BUFFER_SIZE; bufferOffset < bufferRead - WINDOW_SIZE; bufferOffset += WINDOW_DELTA) {
-         findAllFrequencyAmplitudes(buffer, bufferOffset);
+         (*fourierTransform)(buffer, bufferOffset);
       }
 
       if ((bufferRead = sf_read_double(in, buffer + HALF_BUFFER_SIZE, HALF_BUFFER_SIZE)) < WINDOW_DELTA) {
@@ -37,14 +39,14 @@ int main(int argc, char *argv[]) {
       }
 
       for (; bufferOffset < HALF_BUFFER_SIZE + bufferRead - WINDOW_SIZE; bufferOffset += WINDOW_DELTA) {
-         findAllFrequencyAmplitudes(buffer, bufferOffset);
+         (*fourierTransform)(buffer, bufferOffset);
       }
 
       if ((bufferRead = sf_read_double(in, buffer, HALF_BUFFER_SIZE)) < WINDOW_DELTA) {
          break;
       }
       for (; bufferOffset < BUFFER_SIZE; bufferOffset += WINDOW_DELTA) {
-         findAllFrequencyAmplitudes(buffer, bufferOffset);
+         (*fourierTransform)(buffer, bufferOffset);
       }
 
    }
@@ -58,7 +60,7 @@ int main(int argc, char *argv[]) {
 void openWaveFile(char *inFileName, SNDFILE *in, SF_INFO *info) {
 }
 
-double findOneFrequencyAmplitude(double *buffer, int bufferOffset, double frequency) {
+double DFT(double *buffer, int bufferOffset, double frequency) {
    complex double frequencyAmplitude = 0.0;
    complex double temp = 0.0;
    complex double tempExp = 0.0;
@@ -90,15 +92,46 @@ double findOneFrequencyAmplitude(double *buffer, int bufferOffset, double freque
    return cabs(frequencyAmplitude);
 }
 
+void FFTAll(double *buffer, int bufferOffset) {
+   double frequencyBuffer[WINDOW_SIZE / 2];
 
-void findAllFrequencyAmplitudes(double *buffer, int bufferOffset) {
+   FFT(buffer, bufferOffset, WINDOW_SIZE, 1, frequencyBuffer);
+
+   int i = 0;
+   for (i = 0; i < WINDOW_SIZE; i++) {
+      print("Frequency: %d Amplitude: %lf\n", i, frequencyBuffer[i]);
+   }
+
+}
+
+void FFT(double *window, int windowOffset, int windowSize, int stride, double *frequencyBuffer) {
+   if (windowSize == 1) {
+      frequencyBuffer[windowOffset] = window[windowOffset];
+   }
+   else {
+      FFT(window, windowOffset, windowSize / 2, 2 * stride, frequencyBuffer);
+      FFT(window, windowOffset + stride, windowSize / 2, 2 * stride, frequencyBuffer);
+      
+      int i = 0;
+      double temp = 0.0;
+      for (i = 0; i < bufferSize / 2; i++) {
+         temp = frequencyBuffer[i];
+         frequencyBuffer[i] = temp + cexp(-I * 2 * M_PI * i / bufferSize) * frequencyBuffer[i + bufferSize / 2];
+         frequencyBuffer[i + bufferSize / 2] = temp - cexp(-I * 2 * M_PI * i / bufferSize) * frequencyBuffer[i + bufferSize / 2];
+      }
+   }
+}
+
+
+
+void DFTAll(double *buffer, int bufferOffset) {
    double frequency = 0.0;
    double frequencyAmplitude = 0.0;
    double maxFrequency = 0.0;
    double maxFrequencyAmplitude = 0.0;
 
    for (frequency = 0.0; frequency < MAX_FREQUENCY * 2; frequency = frequency + FREQUENCY_DELTA) {
-      frequencyAmplitude = findOneFrequencyAmplitude(buffer, bufferOffset, frequency);
+      frequencyAmplitude = DFT(buffer, bufferOffset, frequency);
 
       if (frequencyAmplitude > maxFrequencyAmplitude) {
          maxFrequency = frequency;

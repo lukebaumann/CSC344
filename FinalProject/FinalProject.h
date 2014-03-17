@@ -13,16 +13,16 @@
 //#define SAMPLE_RATE 44100
 // MAX_FREQUENCY can be at most half of the total size of the window
 #define MAX_FREQUENCY 2100
-#define WINDOW_DELTA 4410
+#define WINDOW_DELTA 22050
 #define FREQUENCY_DELTA 1.0
 
 // Opens a SNDFILE
 void openWaveFile(char *inFileName, SNDFILE *in, SF_INFO *info);
 // Computes the DFT for a single frequency using a given window of samples.
 // Returns the amplitude of the given frequency.
-double findOneFrequencyAmplitude(double *buffer, int bufferSize, double frequency);
-// Runs finalOneFrequencyAmplitude and does something useful with the
+double DFT(double *buffer, int bufferSize, double frequency);
+// Runs DFT for all the frequencies and does something useful with the
 // amplitudes
-void findAllFrequencyAmplitudes(double *buffer, int bufferSize);
+void DFTAll(double *buffer, int bufferSize);
 
 #endif
