@@ -1,100 +1,105 @@
 #include "FinalProject.h"
 
-void doFourierTransform(char *fileName) {
-   double buffer[BUFFER_SIZE];
-   int bufferOffset = 0;
-   int bufferRead = 0;
+static double buffer[BUFFER_SIZE];
+static void (*fourierTransform)(double *, int);
+static SNDFILE *in;
+static SF_INFO info;
 
-   void (*fourierTransform)(double *, int) = &FFTVisualize;
-
-   SNDFILE *in;
-   SF_INFO info;
+void initFourierTransform(char *fileName) {
+   fourierTransform = &FFTVisualize;
 
    if (!(in = sf_open(fileName, SFM_READ, &info))) {
       fprintf(stderr, "Error opening sound file: %s.\n", fileName);
       puts(sf_strerror(NULL));
       return; 
    }
-
-   bufferRead = sf_read_double(in, buffer, THIRD_BUFFER_SIZE); 
-   if (bufferRead == 0) {
-      printf("Read no data.\n");
-   }
-   else if (bufferRead < 0) {
-      fprintf(stderr, "Error on read\n");
-      puts(sf_strerror(NULL));
-      exit(-1);
-   }
-
-   int i = 0;
-   while(++i) {
-      for (bufferOffset %= 2 * THIRD_BUFFER_SIZE; bufferOffset < bufferRead - WINDOW_SIZE; bufferOffset += WINDOW_DELTA) {
-         (*fourierTransform)(buffer + bufferOffset, WINDOW_SIZE);
-      }
-
-      if ((bufferRead = sf_read_double(in, buffer + THIRD_BUFFER_SIZE, THIRD_BUFFER_SIZE)) < WINDOW_DELTA) {
-         //printf("Broke at 1\n");
-         break;
-      }
-
-      for (; bufferOffset < THIRD_BUFFER_SIZE + bufferRead - WINDOW_SIZE; bufferOffset += WINDOW_DELTA) {
-         (*fourierTransform)(buffer + bufferOffset, WINDOW_SIZE);
-      }
-
-      if ((bufferRead = sf_read_double(in, buffer + 2 * THIRD_BUFFER_SIZE, THIRD_BUFFER_SIZE)) < WINDOW_DELTA) {
-         //printf("Broke at 2\n");
-         break;
-      }
-      memcpy(buffer, buffer + 2 * THIRD_BUFFER_SIZE, THIRD_BUFFER_SIZE);
-
-      for (; bufferOffset < 2 * THIRD_BUFFER_SIZE; bufferOffset += WINDOW_DELTA) {
-         (*fourierTransform)(buffer + bufferOffset, WINDOW_SIZE);
-      }
-
-   }
-
-   sf_close(in);
-   free(buffer);
-
-   return 0;
+   asdfa();
 }
 
-void DFTAll(double *window, int windowSize) {
-   double frequencyAmplitude = 0.0;
-   double maxFrequency = 0.0;
-   double maxFrequencyAmplitude = 0.0;
+void doFrameOfFourierTransform() {
+   static int bufferOffset = 0;
+   static int bufferRead = 0;
+   static double frequencyVisualizeBuffer = malloc(WINDOW_SIZE * sizeof(double));;
 
-   int i = 0;
-   for (i = 0; i < windowSize / 2; i++) {
-      frequencyAmplitude = DFT(window, windowSize, i);
+   double *ret;
 
-      if (frequencyAmplitude > maxFrequencyAmplitude) {
-         maxFrequency = i;
-         maxFrequencyAmplitude = frequencyAmplitude;
+   switch (state) {
+   case INIT:
+      if (bufferRead == 0) {
+         bufferRead = sf_read_double(in, buffer, THIRD_BUFFER_SIZE); 
+         if (bufferRead == 0) {
+            printf("Read no data.\n");
+         }
+         else if (bufferRead < 0) {
+            fprintf(stderr, "Error on read\n");
+            puts(sf_strerror(NULL));
+            exit(-1);
+         }
       }
+      // Don't break, continue to FIRST_THIRD
+      // break;
+
+   case FIRST_THIRD:
+      bufferOffset %= 2 * THIRD_BUFFER_SIZE;
+      FFTVisualize(buffer + bufferOffset, WINDOW_SIZE, frequencyVisualizeBuffer);
+      bufferOffset += WINDOW_DELTA;
+
+      if (bufferOffset < bufferRead - WINDOW_SIZE) {
+         if ((bufferRead = sf_read_double(in, buffer + THIRD_BUFFER_SIZE, THIRD_BUFFER_SIZE)) < WINDOW_DELTA) {
+            //printf("Broke at 1\n");
+            state = FINISH;
+         }
+         else {
+            state = SECOND_THIRD;
+         }
+      }
+      else {
+         state = FIRST_THIRD;
+      }
+      ret = frequencyVisualizeBuffer;
+      break;
+
+   case SECOND_THIRD:
+      FFTVisualize(buffer + bufferOffset, WINDOW_SIZE, frequencyVisualizeBuffer);
+      bufferOffset += WINDOW_DELTA;
+
+      if (bufferOffset < THIRD_BUFFER_SIZE + bufferRead - WINDOW_SIZE) {
+         if ((bufferRead = sf_read_double(in, buffer + 2 * THIRD_BUFFER_SIZE, THIRD_BUFFER_SIZE)) < WINDOW_DELTA) {
+            //printf("Broke at 2\n");
+            state = FINISH;
+         }
+      }
+      else {
+         memcpy(buffer, buffer + 2 * THIRD_BUFFER_SIZE, THIRD_BUFFER_SIZE);
+         state = THIRD_THIRD;
+      }
+      ret = frequencyVisualizeBuffer;
+      break;
+
+   case THIRD_THIRD:
+      FFTVisualize(buffer + bufferOffset, WINDOW_SIZE, frequencyVisualizeBuffer);
+      bufferOffset += WINDOW_DELTA;
+
+      if (bufferOffset < 2 * THIRD_BUFFER_SIZE) {
+         state = FIRST_THIRD;
+      }
+      else {
+         state = THIRD_THIRD;
+      }
+      ret = frequencyVisualizeBuffer;
+      break;
+
+   case FINISH:
+      free(frequencyVisualizeBuffer);
+      ret = NULL;
+      break;
    }
 
-   printf("Max Frequency: %lf Amplitude: %lf\n", maxFrequency * SAMPLE_RATE / windowSize, maxFrequencyAmplitude);
+   return ret;
 }
 
-double DFT(double *window, int windowSize, int frequency) {
-   complex double frequencyAmplitude = 0.0;
-   complex double temp = 0.0;
-   complex double tempExp = 0.0;
-
-   int i = 0;
-   for (i = 0; i < windowSize; i++) {
-      tempExp = -I * 2 * M_PI * frequency * i / windowSize;
-      temp = window[i] * cexp(tempExp);
-      frequencyAmplitude += temp;
-   }
-
-   return cabs(frequencyAmplitude);
-}
-
-void FFTVisualize(double *window, int windowSize) {
+void FFTVisualize(double *window, int windowSize, double *frequencyVisualizeBuffer) {
    complex double frequencyBuffer[WINDOW_SIZE];
-   double frequencyVisualizeBuffer[WINDOW_SIZE];
 
    FFT(window, windowSize, 1, frequencyBuffer);   
 
@@ -102,27 +107,6 @@ void FFTVisualize(double *window, int windowSize) {
    for (i = 0; i < windowSize; i++) {
       frequencyVisualizeBuffer[i] = cabs(frequencyBuffer[i]);
    }
-
-   updateFrequencies(frequencyVisualizeBuffer);
-}
-
-void FFTAll(double *window, int windowSize) {
-   complex double frequencyBuffer[WINDOW_SIZE];
-   double maxFrequency = 0.0;
-   double maxFrequencyAmplitude = 0.0;
-
-   FFT(window, windowSize, 1, frequencyBuffer);   
-
-   int i = 0;
-   for (i = 0; i < windowSize / 2; i++) {
-      if (cabs(frequencyBuffer[i]) > maxFrequencyAmplitude) {
-         maxFrequency = i;
-         maxFrequencyAmplitude = cabs(frequencyBuffer[i]);
-      }
-      //printf("f: %d, a: %lf\n", i * 44100 / WINDOW_SIZE, cabs(frequencyBuffer[i]));
-   }
-
-   printf("Max Frequency: %lf Amplitude: %lf\n", maxFrequency * SAMPLE_RATE / windowSize, maxFrequencyAmplitude);
 }
 
 void FFT(double *window, int windowSize, int stride, complex double *frequencyBuffer) {
