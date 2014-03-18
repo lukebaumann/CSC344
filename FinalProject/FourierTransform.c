@@ -1,7 +1,5 @@
 #include "FinalProject.h"
 
-static double buffer[BUFFER_SIZE];
-static void (*fourierTransform)(double *, int);
 static SNDFILE *in;
 static SF_INFO info;
 
@@ -13,10 +11,11 @@ void initFourierTransform(char *fileName) {
       puts(sf_strerror(NULL));
       return; 
    }
-   asdfa();
 }
 
-void doFrameOfFourierTransform() {
+void doNextFrameOfFourierTransform() {
+   static fourierState state;
+   static double buffer[BUFFER_SIZE];
    static int bufferOffset = 0;
    static int bufferRead = 0;
    static double frequencyVisualizeBuffer = malloc(WINDOW_SIZE * sizeof(double));;
@@ -91,6 +90,7 @@ void doFrameOfFourierTransform() {
 
    case FINISH:
       free(frequencyVisualizeBuffer);
+      state = FINISH;
       ret = NULL;
       break;
    }
