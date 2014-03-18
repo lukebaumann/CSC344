@@ -1,35 +1,19 @@
 #include "FinalProject.h"
 
-int main(int argc, char *argv[]) {
-   double *buffer = malloc(BUFFER_SIZE * sizeof(double));
+void doFourierTransform(char *fileName) {
+   double buffer[BUFFER_SIZE];
    int bufferOffset = 0;
    int bufferRead = 0;
 
-   if (argc < 2) {
-      printf("usage: %s fileName [optional -d for DFT]\n", argv[0]);
-      exit(-1);
-   }
+   void (*fourierTransform)(double *, int) = &FFTVisualize;
 
-   void (*fourierTransform)(double *, int);
-
-   if (argc > 2 && !strcmp(argv[2], "-d")) {
-      fourierTransform = &DFTAll;
-   }
-   else {
-      fourierTransform = &FFTAll;
-   }
-
-   char *fileName = argv[1];
    SNDFILE *in;
    SF_INFO info;
 
    if (!(in = sf_open(fileName, SFM_READ, &info))) {
       fprintf(stderr, "Error opening sound file: %s.\n", fileName);
       puts(sf_strerror(NULL));
-      exit(-1);
-   }
-   else {
-      printf("Successful open\n");
+      return; 
    }
 
    bufferRead = sf_read_double(in, buffer, THIRD_BUFFER_SIZE); 
@@ -108,25 +92,26 @@ double DFT(double *window, int windowSize, int frequency) {
    return cabs(frequencyAmplitude);
 }
 
+void FFTVisualize(double *window, int windowSize) {
+   complex double frequencyBuffer[WINDOW_SIZE];
+   double frequencyVisualizeBuffer[WINDOW_SIZE];
+
+   FFT(window, windowSize, 1, frequencyBuffer);   
+
+   int i = 0;
+   for (i = 0; i < windowSize; i++) {
+      frequencyVisualizeBuffer[i] = cabs(frequencyBuffer[i]);
+   }
+
+   updateFrequencies(frequencyVisualizeBuffer);
+}
+
 void FFTAll(double *window, int windowSize) {
    complex double frequencyBuffer[WINDOW_SIZE];
    double maxFrequency = 0.0;
    double maxFrequencyAmplitude = 0.0;
 
-   FFT(window, windowSize, 1, frequencyBuffer);
-   
-   /*int j = 0;
-   double testBuffer[100000];
-   complex double testFrequencyBuffer[100000];
-   for (j = 0; j < 100000; j++) {
-      testBuffer[j] = sin(2 * M_PI * 30 * j / SAMPLE_RATE);
-   }
-
-   FFT(testBuffer, WINDOW_SIZE, 1, testFrequencyBuffer);
-   for (j = 0; j < WINDOW_SIZE; j++) {
-      printf("Frequency: %0.4lf FFT: %0.4lf\n", j * (double)(SAMPLE_RATE) / WINDOW_SIZE, cabs(testFrequencyBuffer[j]));
-   }
-  */
+   FFT(window, windowSize, 1, frequencyBuffer);   
 
    int i = 0;
    for (i = 0; i < windowSize / 2; i++) {
@@ -164,4 +149,3 @@ void FFT(double *window, int windowSize, int stride, complex double *frequencyBu
       free(result);
    }
 }
-

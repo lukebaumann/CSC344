@@ -14,15 +14,24 @@ void getFrequencyAmplitudes(double *frequencyAmplitudes, int frequencyAmplitudes
 double getMaxAmplitude(double *frequencyAmplitudes, int frequencyAmplitudesSize);
 sf::VertexArray makeBar(int frequencyIndex, double normalizedAmplitude);
 
-const static int FREQUENCY_BAR_WIDTH = LEFT_MOST_FREQUENCY_BAR + (RIGHT_MOST_FREQUENCY_BAR - LEFT_MOST_FREQUENCY_BAR) / WINDOW_SIZE * 2 - WIDTH + RIGHT_MOST_FREQUENCY_BAR;
-int main() {
+const static int FREQUENCY_BAR_WIDTH = LEFT_MOST_FREQUENCY_BAR + (RIGHT_MOST_FREQUENCY_BAR - LEFT_MOST_FREQUENCY_BAR) / WINDOW_SIZE - WIDTH + RIGHT_MOST_FREQUENCY_BAR;
+int main(int argc, char *argv[]) {
    double frequencyAmplitudes[WINDOW_SIZE];
    double maxAmplitude = 0.0;
    double runningAverageMaxAmplitude = 0.0;
+   char maxAmplitudeBuffer[30];
+   char *fileName;
+
+   if (argc != 2) {
+      fprintf(stderr, "usage: %s fileName.wav\n", argv[0]);
+      exit(-1);
+   }
+   else {
+      fileName = argv[1];
+   }
 
    sf::Font font;
    font.loadFromFile("Arial.ttf");
-   char maxAmplitudeBuffer[30];
 
    sf::RenderWindow window(sf::VideoMode(WIDTH, HEIGHT), "Histogram");
 
@@ -44,7 +53,7 @@ int main() {
          maxAmplitude = runningAverageMaxAmplitude;
       }
 
-      for (int i = 0; i < WINDOW_SIZE / 2; i++) {
+      for (int i = 0; i < WINDOW_SIZE; i++) {
          window.draw(makeBar(i, frequencyAmplitudes[i] / maxAmplitude));
       }
 
@@ -60,10 +69,12 @@ int main() {
    }
 }
 
+void updateFrequencies(double *frequencyAmplitudes, int frequencyAmplitudesSize) {
+   memcpy(mostRecentFrequencyAmplitudes, frequencyAmplitudes, frequencyAmplitudesSize * sizeof(double));
+}
+
 void getFrequencyAmplitudes(double *frequencyAmplitudes, int frequencyAmplitudesSize) {
-   for (int i = 0; i < frequencyAmplitudesSize; i++) {
-      frequencyAmplitudes[i] = i * 400;
-   }
+
 }
 
 double getMaxAmplitude(double *frequencyAmplitudes, int frequencyAmplitudesSize) {
