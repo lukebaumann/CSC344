@@ -157,8 +157,6 @@ void FFT(double *window, int windowSize, int stride, complex double *frequencyBu
       complex double temp = 0.0;
 
       for (i = 0;  i < windowSize / 2; i++) {
-         //frequencyBuffer[i] = result[i] + result[i + windowSize / 2];
-         //frequencyBuffer[i + windowSize / 2] = result[i] - result[i + windowSize / 2];
          frequencyBuffer[i] = result[i] + cexp(-I * 2 * M_PI * i / windowSize) * result[i + windowSize / 2];
          frequencyBuffer[i + windowSize / 2] = result[i] - cexp(-I * 2 * M_PI * i / windowSize) * result[i + windowSize / 2];
       }
