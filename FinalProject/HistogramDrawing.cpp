@@ -4,7 +4,7 @@ extern double *doNextFrameOfFourierTransform();
 extern void *initFourierTransform();
 
 int main(int argc, char *argv[]) {
-   double frequencyAmplitudes[WINDOW_SIZE];
+   double *frequencyAmplitudes = new double[WINDOW_SIZE];
    int maxAmplitudeIndex = 0;
    double maxAmplitude = 0.0;
    double runningAverageMaxAmplitude = 0.0;
@@ -58,6 +58,8 @@ int main(int argc, char *argv[]) {
 
       sf::sleep(sf::seconds(1));
    }
+
+   delete[] frequencyAmplitudes;
 }
 
 void getFrequencyAmplitudes(double *frequencyAmplitudes, int frequencyAmplitudesSize) {
@@ -76,7 +78,7 @@ int getMaxAmplitudeIndex(double *frequencyAmplitudes, int frequencyAmplitudesSiz
    double maxAmplitude = 0.0;
    int maxAmplitudeIndex = 0;
    for (int i = 0; i < frequencyAmplitudesSize; i++) {
-      printf("Freq: %10.3lf Amp: %10.3lf\n", i * SAMPLE_RATE / (double) WINDOW_SIZE, frequencyAmplitudes[i]);
+      //printf("Freq: %10.3lf Amp: %10.3lf\n", i * SAMPLE_RATE / (double) WINDOW_SIZE, frequencyAmplitudes[i]);
       if (frequencyAmplitudes[i] > maxAmplitude) {
          maxAmplitude = frequencyAmplitudes[i];
          maxAmplitudeIndex = i;
