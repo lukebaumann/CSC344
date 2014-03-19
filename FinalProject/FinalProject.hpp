@@ -14,8 +14,9 @@
 const static int BUFFER_SIZE = 99999;
 const static int THIRD_BUFFER_SIZE = 33333;
 const static int SAMPLE_RATE = 44100;
-const static int WINDOW_SIZE = 128;
+const static int WINDOW_SIZE = 4096;
 const static int WINDOW_DELTA = 2450;
+const static int SCALING_FACTOR = 1000;
 const static int WIDTH = 800;
 const static int HEIGHT = 600;
 const static int BOTTOM_OF_FREQUENCY_BARS = 590;
@@ -39,6 +40,6 @@ void FFT(double *window, int windowSize, int stride, std::complex<double> *frequ
 void FFTVisualize(double *window, int windowSize, double *frequencyVisualizeBuffer);
 sf::VertexArray makeBar(int frequencyIndex, double normalizedAmplitude);
 void getFrequencyAmplitudes(double *frequencyAmplitudes, int frequencyAmplitudesSize);
-double getMaxAmplitude(double *frequencyAmplitudes, int frequencyAmplitudesSize);
+int getMaxAmplitudeIndex(double *frequencyAmplitudes, int frequencyAmplitudesSize);
 
 #endif

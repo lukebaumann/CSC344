@@ -3,9 +3,9 @@
 extern double *doNextFrameOfFourierTransform();
 extern void *initFourierTransform();
 
-
 int main(int argc, char *argv[]) {
    double frequencyAmplitudes[WINDOW_SIZE];
+   int maxAmplitudeIndex = 0;
    double maxAmplitude = 0.0;
    double runningAverageMaxAmplitude = 0.0;
    char maxAmplitudeBuffer[30];
@@ -33,7 +33,9 @@ int main(int argc, char *argv[]) {
       window.clear(sf::Color::White);
 
       getFrequencyAmplitudes(frequencyAmplitudes, WINDOW_SIZE);
-      maxAmplitude = getMaxAmplitude(frequencyAmplitudes, WINDOW_SIZE); 
+      maxAmplitudeIndex = getMaxAmplitudeIndex(frequencyAmplitudes, WINDOW_SIZE); 
+      maxAmplitude = frequencyAmplitudes[maxAmplitudeIndex];
+
       runningAverageMaxAmplitude = runningAverageMaxAmplitude * 0.8 + maxAmplitude * 0.2;
 
       if (maxAmplitude < runningAverageMaxAmplitude) {
@@ -44,7 +46,7 @@ int main(int argc, char *argv[]) {
          window.draw(makeBar(i, frequencyAmplitudes[i] / maxAmplitude));
       }
 
-      sprintf(maxAmplitudeBuffer, "Max: %10.3lf", maxAmplitude);
+      sprintf(maxAmplitudeBuffer, "Max\nFrequency: %10.3lf\nAmplitude: %10.3lf", maxAmplitudeIndex * SAMPLE_RATE / (double) WINDOW_SIZE, maxAmplitude);
       sf::Text text(maxAmplitudeBuffer, font);
       text.setCharacterSize(16);
       text.setColor(sf::Color::Black);
@@ -70,15 +72,19 @@ void getFrequencyAmplitudes(double *frequencyAmplitudes, int frequencyAmplitudes
    }
 }
 
-double getMaxAmplitude(double *frequencyAmplitudes, int frequencyAmplitudesSize) {
+int getMaxAmplitudeIndex(double *frequencyAmplitudes, int frequencyAmplitudesSize) {
    double maxAmplitude = 0.0;
+   int maxAmplitudeIndex = 0;
    for (int i = 0; i < frequencyAmplitudesSize; i++) {
+      printf("Freq: %10.3lf Amp: %10.3lf\n", i * SAMPLE_RATE / (double) WINDOW_SIZE, frequencyAmplitudes[i]);
       if (frequencyAmplitudes[i] > maxAmplitude) {
          maxAmplitude = frequencyAmplitudes[i];
+         maxAmplitudeIndex = i;
       }
    }
 
-   return maxAmplitude;
+   printf("Max Freq: %10.3lf Amp: %10.3lf\n\n", maxAmplitudeIndex * SAMPLE_RATE / (double) WINDOW_SIZE, frequencyAmplitudes[maxAmplitudeIndex]);
+   return maxAmplitudeIndex;
 }
 
 sf::VertexArray makeBar(int frequencyIndex, double normalizedAmplitude) {

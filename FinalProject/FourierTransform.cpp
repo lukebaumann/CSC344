@@ -99,13 +99,13 @@ void FFTVisualize(double *window, int windowSize, double *frequencyVisualizeBuff
 
    int i = 0;
    for (i = 0; i < windowSize; i++) {
-      frequencyVisualizeBuffer[i] = std::abs(frequencyBuffer[i]);
+      frequencyVisualizeBuffer[i] = 10 * log10(std::abs(frequencyBuffer[i]));
    }
 }
 
 void FFT(double *window, int windowSize, int stride, std::complex<double> *frequencyBuffer) {
    if (windowSize == 1) {
-      frequencyBuffer[0] = window[0];
+      frequencyBuffer[0] = window[0] / SCALING_FACTOR;
    }
    else if (windowSize == 0) {
       printf("ASDF\n"); 
