@@ -5,7 +5,7 @@ OUTPUT_NAME="test.out"
 
 echo "Compiling program..."
 sleep 0.5
-gcc "$PROGRAM_NAME".c -lsndfile -o $PROGRAM_NAME -g || { echo "Compiling error"; exit $?; }
+g++ HistogramDrawing.cpp FourierTransform.cpp -lsfml-graphics -lsfml-window -lsfml-system -lsndfile -o $PROGRAM_NAME -g || { echo "Compiling error"; exit $?; }
 
 if [ $# -eq 0 ]
 then

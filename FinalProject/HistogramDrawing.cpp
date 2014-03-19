@@ -1,34 +1,21 @@
-#include <SFML/Window.hpp>
-#include <SFML/Graphics.hpp>
-#include <iostream>
+#include "FinalProject.hpp"
 
-#define WIDTH 800
-#define HEIGHT 600
-#define BOTTOM_OF_FREQUENCY_BARS 590
-#define TOP_OF_FREQUENCY_BARS 10
-#define LEFT_MOST_FREQUENCY_BAR 10
-#define RIGHT_MOST_FREQUENCY_BAR 790
-#define WINDOW_SIZE 128
+extern double *doNextFrameOfFourierTransform();
+extern void *initFourierTransform();
 
-void getFrequencyAmplitudes(double *frequencyAmplitudes, int frequencyAmplitudesSize);
-double getMaxAmplitude(double *frequencyAmplitudes, int frequencyAmplitudesSize);
-sf::VertexArray makeBar(int frequencyIndex, double normalizedAmplitude);
 
-const static int FREQUENCY_BAR_WIDTH = LEFT_MOST_FREQUENCY_BAR + (RIGHT_MOST_FREQUENCY_BAR - LEFT_MOST_FREQUENCY_BAR) / WINDOW_SIZE - WIDTH + RIGHT_MOST_FREQUENCY_BAR;
 int main(int argc, char *argv[]) {
    double frequencyAmplitudes[WINDOW_SIZE];
    double maxAmplitude = 0.0;
    double runningAverageMaxAmplitude = 0.0;
    char maxAmplitudeBuffer[30];
-   char *fileName;
 
    if (argc != 2) {
       fprintf(stderr, "usage: %s fileName.wav\n", argv[0]);
       exit(-1);
    }
-   else {
-      fileName = argv[1];
-   }
+
+   initFourierTransform(argv[1]);
 
    sf::Font font;
    font.loadFromFile("Arial.ttf");
@@ -66,15 +53,21 @@ int main(int argc, char *argv[]) {
 
 
       window.display();
+
+      sf::sleep(sf::seconds(1));
    }
 }
 
-void updateFrequencies(double *frequencyAmplitudes, int frequencyAmplitudesSize) {
-   memcpy(mostRecentFrequencyAmplitudes, frequencyAmplitudes, frequencyAmplitudesSize * sizeof(double));
-}
-
 void getFrequencyAmplitudes(double *frequencyAmplitudes, int frequencyAmplitudesSize) {
-
+   double *frequencies;
+   if ((frequencies = doNextFrameOfFourierTransform())) {
+      memcpy(frequencyAmplitudes, frequencies, frequencyAmplitudesSize);
+   }
+   else {
+      for (int i = 0; i < frequencyAmplitudesSize; i++) {
+         frequencyAmplitudes[i] = 0.0;
+      }
+   }
 }
 
 double getMaxAmplitude(double *frequencyAmplitudes, int frequencyAmplitudesSize) {
