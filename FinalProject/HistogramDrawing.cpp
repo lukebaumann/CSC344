@@ -78,14 +78,13 @@ int getMaxAmplitudeIndex(double *frequencyAmplitudes, int frequencyAmplitudesSiz
    double maxAmplitude = 0.0;
    int maxAmplitudeIndex = 0;
    for (int i = 0; i < frequencyAmplitudesSize; i++) {
-      //printf("Freq: %10.3lf Amp: %10.3lf\n", i * SAMPLE_RATE / (double) WINDOW_SIZE, frequencyAmplitudes[i]);
+      printf("freq: %lf ampl: %lf\n", i * SAMPLE_RATE / (double) WINDOW_SIZE, frequencyAmplitudes[i]);
       if (frequencyAmplitudes[i] > maxAmplitude) {
          maxAmplitude = frequencyAmplitudes[i];
          maxAmplitudeIndex = i;
       }
    }
 
-   printf("Max Freq: %10.3lf Amp: %10.3lf\n\n", maxAmplitudeIndex * SAMPLE_RATE / (double) WINDOW_SIZE, frequencyAmplitudes[maxAmplitudeIndex]);
    return maxAmplitudeIndex;
 }
 
@@ -108,84 +107,3 @@ sf::VertexArray makeBar(int frequencyIndex, double normalizedAmplitude) {
 
    return quad;
 }
-
-
-/*#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
-#define MAX_LINE_CHARACTERS 80
-#define MAX_NAME_CHARACTERS 10
-#define MAX_BIN_VALUE 50
-
-void drawOneBin(char *binName, int binValue);
-void erasePreviousLine();
-void eraseCurrentLine();
-
-int main() {
-   drawOneBin("Cool Bin", 6);
-   drawOneBin("Really Sik", 33);
-   drawOneBin("10", 3);
-   usleep(1000000);
-   erasePreviousLine();
-   drawOneBin("10", 33);
-   usleep(1000000);
-   erasePreviousLine();
-   usleep(1000000);
-   erasePreviousLine();
-   drawOneBin("Not Cool", 4);
-
-
-
-
-   
-}
-
-void eraseCurrentLine() {
-   char spaceCharacterBuffer[MAX_LINE_CHARACTERS];
-
-   int i = 0;
-   for (i = 0; i < MAX_LINE_CHARACTERS; i++) {
-      sprintf(spaceCharacterBuffer + i, " ");
-   }
-
-   printf("\r%s\r", spaceCharacterBuffer);
-}
-
-void erasePreviousLine() {
-   printf("\r\b");
-   eraseCurrentLine();
-}
-
-void drawOneBin(char *binName, int binValue) {
-   char binCharacterBuffer[MAX_LINE_CHARACTERS];
-   int lengthOfName = strlen(binName);
-   int characterIndex = lengthOfName;
-   
-   if (lengthOfName > MAX_NAME_CHARACTERS) {
-      fprintf(stderr, "Error: bin name too long: %d should be less than %d\n", lengthOfName, MAX_NAME_CHARACTERS);
-      exit(-1);
-   }
-
-   if (binValue > MAX_BIN_VALUE) {
-      fprintf(stderr, "Error: bin value too high: %d should be less than %d\n", binValue, MAX_NAME_CHARACTERS);
-      exit(-1);
-   }
-
-   sprintf(binCharacterBuffer, "%s", binName);
-
-   int i = 0;
-   for (i = 0; i + lengthOfName < MAX_NAME_CHARACTERS; i++) {
-      sprintf(binCharacterBuffer + characterIndex++, " ");
-   }
-
-   sprintf(binCharacterBuffer + characterIndex, ": ");
-   characterIndex += 2;
-
-   for (i = 0; i < binValue; i++) {
-      sprintf(binCharacterBuffer + characterIndex++, "*");
-   }
-   
-   printf("%s\n", binCharacterBuffer);
-}
-*/

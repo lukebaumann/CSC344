@@ -116,8 +116,6 @@ void FFTVisualize(double *window, int windowSize, double *frequencyVisualizeBuff
    for (i = 0; i < windowSize; i++) {
       //frequencyVisualizeBuffer[i] = 10 * log10(std::abs(frequencyBuffer[i]));
       frequencyVisualizeBuffer[i] = std::abs(frequencyBuffer[i]);
-
-      printf("freq: %lf amp: %lf\n", i * SAMPLE_RATE / (double) windowSize, frequencyVisualizeBuffer[i]); 
    }
 
    delete[] frequencyBuffer;
