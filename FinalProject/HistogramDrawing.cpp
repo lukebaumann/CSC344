@@ -8,6 +8,7 @@ int main(int argc, char *argv[]) {
    int maxAmplitudeIndex = 0;
    double maxAmplitude = 0.0;
    double runningAverageMaxAmplitude = 0.0;
+   double decayFactor = 0.95;
    char maxAmplitudeBuffer[30];
 
    if (argc != 2) {
@@ -36,14 +37,14 @@ int main(int argc, char *argv[]) {
       maxAmplitudeIndex = getMaxAmplitudeIndex(frequencyAmplitudes, WINDOW_SIZE); 
       maxAmplitude = frequencyAmplitudes[maxAmplitudeIndex];
 
-      runningAverageMaxAmplitude = runningAverageMaxAmplitude * 0.8 + maxAmplitude * 0.2;
+      runningAverageMaxAmplitude = runningAverageMaxAmplitude * decayFactor + maxAmplitude * (1.0 - decayFactor);
 
       if (maxAmplitude < runningAverageMaxAmplitude) {
          maxAmplitude = runningAverageMaxAmplitude;
       }
 
       for (int i = 0; i < WINDOW_SIZE; i++) {
-         window.draw(makeBar(i, frequencyAmplitudes[i] / maxAmplitude));
+         window.draw(makeBar(i, maxAmplitude > 1.0 ? frequencyAmplitudes[i] / maxAmplitude : frequencyAmplitudes[i] * maxAmplitude));
       }
 
       sprintf(maxAmplitudeBuffer, "Max\nFrequency: %10.3lf\nAmplitude: %10.3lf", maxAmplitudeIndex * SAMPLE_RATE / (double) WINDOW_SIZE, maxAmplitude);
@@ -56,7 +57,7 @@ int main(int argc, char *argv[]) {
 
       window.display();
 
-      sf::sleep(sf::seconds(1));
+      //sf::sleep(sf::seconds(1));
    }
 
    delete[] frequencyAmplitudes;
@@ -65,7 +66,7 @@ int main(int argc, char *argv[]) {
 void getFrequencyAmplitudes(double *frequencyAmplitudes, int frequencyAmplitudesSize) {
    double *frequencies;
    if ((frequencies = doNextFrameOfFourierTransform())) {
-      memcpy(frequencyAmplitudes, frequencies, frequencyAmplitudesSize);
+      memcpy(frequencyAmplitudes, frequencies, frequencyAmplitudesSize * sizeof(double));
    }
    else {
       for (int i = 0; i < frequencyAmplitudesSize; i++) {
@@ -78,7 +79,6 @@ int getMaxAmplitudeIndex(double *frequencyAmplitudes, int frequencyAmplitudesSiz
    double maxAmplitude = 0.0;
    int maxAmplitudeIndex = 0;
    for (int i = 0; i < frequencyAmplitudesSize; i++) {
-      printf("freq: %lf ampl: %lf\n", i * SAMPLE_RATE / (double) WINDOW_SIZE, frequencyAmplitudes[i]);
       if (frequencyAmplitudes[i] > maxAmplitude) {
          maxAmplitude = frequencyAmplitudes[i];
          maxAmplitudeIndex = i;

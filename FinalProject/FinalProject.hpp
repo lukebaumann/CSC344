@@ -14,7 +14,7 @@
 const static int BUFFER_SIZE = 99999;
 const static int THIRD_BUFFER_SIZE = 33333;
 const static int SAMPLE_RATE = 44100;
-const static int WINDOW_SIZE = 4096;
+const static int WINDOW_SIZE = 32768;
 const static int WINDOW_DELTA = 2450;
 const static int SCALING_FACTOR = 1000;
 const static int WIDTH = 800;
