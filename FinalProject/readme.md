@@ -6,6 +6,9 @@ To test:
 I have included sample wave files with file names that correspond to the frequency of the tone produced in them.
 30.wav, 200.wav, 500.wav, 1000.wav, 9832.wav, 200-500-1000-9832-30.wav, and whistle.wav
 
+Demonstration:
+http://youtu.be/G9GwKFU43hY
+
 Explanation:
 This is my own implementation of the FFT. The algorithm is based on the pseudocode found on wikipedia's FFT page.
 
