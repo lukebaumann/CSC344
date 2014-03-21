@@ -2,3 +2,4 @@
 DFT
 FourierTransform
 *.dSYM
+fft*

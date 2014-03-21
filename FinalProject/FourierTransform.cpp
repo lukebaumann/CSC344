@@ -139,8 +139,6 @@ void FFT(double *window, int windowSize, int stride, std::complex<double> *frequ
       FFT(window + stride, windowSize / 2, 2 * stride, result + windowSize / 2);
 
       int i = 0;
-      std::complex<double> temp = 0.0;
-
       for (i = 0;  i < windowSize / 2; i++) {
          frequencyBuffer[i] = result[i] + exp(std::complex<double>(0.0, 1.0) * (-2 * M_PI * i / (double) windowSize)) * result[i + windowSize / 2];
          frequencyBuffer[i + windowSize / 2] = result[i] - exp(std::complex<double>(0.0, 1.0) * (-2 * M_PI * i / (double) windowSize)) * result[i + windowSize / 2];
