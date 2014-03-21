@@ -7,21 +7,21 @@ int main(int argc, char *argv[]) {
    double *frequencyAmplitudes = new double[WINDOW_SIZE];
    int maxAmplitudeIndex = 0;
    double maxAmplitude = 0.0;
-//   double runningAverageMaxAmplitude = 0.0;
-//   double decayFactor = 0.95;
    char maxAmplitudeBuffer[CHARACTER_BUFFER_SIZE];
+//   char topFrequencyBuffer[CHARACTER_BUFFER_SIZE];
+//   char midFrequencyBuffer[CHARACTER_BUFFER_SIZE];
+//   char bottomFrequencyBuffer[CHARACTER_BUFFER_SIZE];
+   sf::Font font;
 
    if (argc != 2) {
       fprintf(stderr, "usage: %s fileName.wav\n", argv[0]);
       exit(-1);
    }
 
-   initFourierTransform(argv[1]);
-
-   sf::Font font;
    font.loadFromFile("Arial.ttf");
-
    sf::RenderWindow window(sf::VideoMode(WIDTH, HEIGHT), "Histogram");
+
+   initFourierTransform(argv[1]);
 
    while (window.isOpen()) {
       sf::Event event;
@@ -37,12 +37,6 @@ int main(int argc, char *argv[]) {
       maxAmplitudeIndex = getMaxAmplitudeIndex(frequencyAmplitudes, NUMBER_OF_FREQUENCIES); 
       maxAmplitude = frequencyAmplitudes[maxAmplitudeIndex];
 
-/*      runningAverageMaxAmplitude = runningAverageMaxAmplitude * decayFactor + maxAmplitude * (1.0 - decayFactor);
-
-      if (maxAmplitude < runningAverageMaxAmplitude) {
-         maxAmplitude = runningAverageMaxAmplitude;
-      }
-*/
       for (int i = 1; i < NUMBER_OF_FREQUENCIES; i++) {
          window.draw(makeBar(i, maxAmplitude > 1.0 ? frequencyAmplitudes[i] / maxAmplitude : frequencyAmplitudes[i] * maxAmplitude));
       }
@@ -57,7 +51,7 @@ int main(int argc, char *argv[]) {
 
       window.display();
 
-      sf::sleep(sf::seconds(1));
+      //sf::sleep(sf::seconds(1));
    }
 
    delete[] frequencyAmplitudes;
