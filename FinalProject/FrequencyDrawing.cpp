@@ -7,10 +7,17 @@ int main(int argc, char *argv[]) {
    double *frequencyAmplitudes = new double[WINDOW_SIZE];
    int maxAmplitudeIndex = 0;
    double maxAmplitude = 0.0;
-   char maxAmplitudeBuffer[CHARACTER_BUFFER_SIZE];
-//   char topFrequencyBuffer[CHARACTER_BUFFER_SIZE];
-//   char midFrequencyBuffer[CHARACTER_BUFFER_SIZE];
-//   char bottomFrequencyBuffer[CHARACTER_BUFFER_SIZE];
+   char frequencyInfoBuffer[CHARACTER_BUFFER_SIZE];
+   char maxInfoBuffer[CHARACTER_BUFFER_SIZE];
+   char topFrequencyBuffer[CHARACTER_BUFFER_SIZE];
+   char middleFrequencyBuffer[CHARACTER_BUFFER_SIZE];
+   char bottomFrequencyBuffer[CHARACTER_BUFFER_SIZE];
+   sf::Text frequencyInfoText;
+   sf::Text maxInfoText;
+   sf::Text bottomFrequencyText;
+   sf::Text middleFrequencyText;
+   sf::Text topFrequencyText;
+   
    sf::Font font;
 
    if (argc != 2) {
@@ -20,6 +27,21 @@ int main(int argc, char *argv[]) {
 
    font.loadFromFile("Arial.ttf");
    sf::RenderWindow window(sf::VideoMode(WIDTH, HEIGHT), "Fast Fourier Transform");
+
+   sprintf(frequencyInfoBuffer, "Number of Frequencies: %d\tFrequency Spacing: %6.3lf Hz\nBottom Frequency: %6.3lf Hz\tTop Frequency: %6.3lf Hz", NUMBER_OF_FREQUENCIES, FREQUENCY_SPACING, FREQUENCY_SPACING * 1, FREQUENCY_SPACING * NUMBER_OF_FREQUENCIES);
+   frequencyInfoText = makeText(frequencyInfoBuffer, &font, 0, 0);
+
+   sprintf(maxInfoBuffer, "Max Frequency: %6.3lf Hz\tMax Amplitude: %6.3lf", maxAmplitudeIndex * FREQUENCY_SPACING, maxAmplitude);
+   maxInfoText = makeText(maxInfoBuffer, &font, 0, TEXT_LINE_HEIGHT * 2);
+
+   sprintf(bottomFrequencyBuffer, "%6.3lf Hz", FREQUENCY_SPACING * 1);
+   bottomFrequencyText = makeText(bottomFrequencyBuffer, &font, 0, HEIGHT - TEXT_LINE_HEIGHT);
+
+   sprintf(middleFrequencyBuffer, "%6.3lf Hz", FREQUENCY_SPACING * NUMBER_OF_FREQUENCIES / 2);
+   middleFrequencyText = makeText(middleFrequencyBuffer, &font, WIDTH / 2 - 50, HEIGHT - TEXT_LINE_HEIGHT);
+
+   sprintf(topFrequencyBuffer, "%6.3lf Hz", FREQUENCY_SPACING * NUMBER_OF_FREQUENCIES);
+   topFrequencyText = makeText(topFrequencyBuffer, &font, WIDTH - 100, HEIGHT - TEXT_LINE_HEIGHT);
 
    initFourierTransform(argv[1]);
 
@@ -38,19 +60,21 @@ int main(int argc, char *argv[]) {
       maxAmplitude = frequencyAmplitudes[maxAmplitudeIndex];
 
       for (int i = 1; i < NUMBER_OF_FREQUENCIES; i++) {
-         window.draw(makeBar(i, maxAmplitude > 1.0 ? frequencyAmplitudes[i] / maxAmplitude : frequencyAmplitudes[i] * maxAmplitude));
+         window.draw(makeBar(i, frequencyAmplitudes[i] / fmax(1.0, maxAmplitude)));
       }
 
-      sprintf(maxAmplitudeBuffer, "Number of Frequencies: %d\tFrequency Spacing: %6.3lf\nBottom Frequency: %6.3lf\tTop Frequency: %6.3lf\nMax Frequency: %6.3lf\tMax Amplitude: %6.3lf", NUMBER_OF_FREQUENCIES, FREQUENCY_SPACING, FREQUENCY_SPACING * 1, FREQUENCY_SPACING * NUMBER_OF_FREQUENCIES, maxAmplitudeIndex * SAMPLE_RATE / (double) WINDOW_SIZE, maxAmplitude);
-      sf::Text text(maxAmplitudeBuffer, font);
-      text.setCharacterSize(16);
-      text.setColor(sf::Color::Black);
+      sprintf(maxInfoBuffer, "Max Frequency: %6.3lf\tMax Amplitude: %6.3lf", maxAmplitudeIndex * FREQUENCY_SPACING, maxAmplitude);
+      maxInfoText.setString(maxInfoBuffer);
 
-      window.draw(text);
-
+      window.draw(frequencyInfoText);
+      window.draw(maxInfoText);
+      window.draw(bottomFrequencyText);
+      window.draw(middleFrequencyText);
+      window.draw(topFrequencyText);
 
       window.display();
 
+      // To slow it down if necessary
       //sf::sleep(sf::seconds(1));
    }
 
@@ -101,3 +125,13 @@ sf::VertexArray makeBar(int frequencyIndex, double normalizedAmplitude) {
 
    return quad;
 }
+
+sf::Text makeText(char *textBuffer, sf::Font *font, int x, int y) {
+   sf::Text text(textBuffer, *font);
+   text.setCharacterSize(16);
+   text.setColor(sf::Color::Black);
+   text.setPosition(x, y);
+
+   return text;
+}
+
