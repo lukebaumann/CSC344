@@ -19,7 +19,7 @@ int main(int argc, char *argv[]) {
    }
 
    font.loadFromFile("Arial.ttf");
-   sf::RenderWindow window(sf::VideoMode(WIDTH, HEIGHT), "Histogram");
+   sf::RenderWindow window(sf::VideoMode(WIDTH, HEIGHT), "Fast Fourier Transform");
 
    initFourierTransform(argv[1]);
 

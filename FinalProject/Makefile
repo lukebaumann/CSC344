@@ -22,8 +22,8 @@ endif
 
 all:  fft-$(EXEC_SUFFIX)
 
-fft-$(EXEC_SUFFIX): HistogramDrawing.cpp FourierTransform.cpp FinalProject.hpp
-	$(CC) $(CFLAGS) $(OSINC) $(OSLIB) $(OSDEF) -o $@ HistogramDrawing.cpp FourierTransform.cpp
+fft-$(EXEC_SUFFIX): FrequencyDrawing.cpp FourierTransform.cpp FinalProject.hpp
+	$(CC) $(CFLAGS) $(OSINC) $(OSLIB) $(OSDEF) -o $@ FrequencyDrawing.cpp FourierTransform.cpp
 
 clean:
 	rm -f fft-*
