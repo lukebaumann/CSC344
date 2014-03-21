@@ -1,15 +1,18 @@
-To build and run:
-make
-fft-[system specific name] wavefile.wav
+# Fast Fourier Transform
 
-To test:
+
+## To build and run:
+    make
+    fft-[system specific name] wavefile.wav
+
+## To test:
 I have included sample wave files with file names that correspond to the frequency of the tone produced in them.
 30.wav, 200.wav, 500.wav, 1000.wav, 9832.wav, 200-500-1000-9832-30.wav, and whistle.wav
 
-Demonstration:
+## Demonstration:
 http://youtu.be/G9GwKFU43hY
 
-Explanation:
+## Explanation:
 This is my own implementation of the FFT. The algorithm is based on the pseudocode found on wikipedia's FFT page.
 
 I tried to create a graphical representation of the FFT output because I saw that it was difficult to prove to the class that my program was doing what I said it was doing without some kind of visualization. While designing and testing the visualization, I needed to redesign my FFT program into a state machine that returned the FFT of the next frame instead of computing all the frames at once. While working on the visualization, I found several bugs in my FFT program that may or may not have been introduced during the state machine change.
