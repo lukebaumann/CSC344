@@ -69,7 +69,7 @@ double *doNextFrameOfFourierTransform() {
             state = CLEAN_UP;
          }
          else {
-            memcpy(buffer, buffer + 2 * THIRD_BUFFER_SIZE, THIRD_BUFFER_SIZE);
+            memcpy(buffer, buffer + 2 * THIRD_BUFFER_SIZE, THIRD_BUFFER_SIZE * sizeof(double));
             state = THIRD_THIRD;
          }
       }
@@ -119,6 +119,7 @@ void FFTVisualize(double *window, int windowSize, double *frequencyVisualizeBuff
 
    int i = 0;
    for (i = 0; i < windowSize; i++) {
+      // I do not like the log scale because then I have negative amplitudes
       //frequencyVisualizeBuffer[i] = 10 * log10(std::abs(frequencyBuffer[i]));
       /*if (i != 0 && i < windowSize / 2) {
          printf("freq: %lf ampl: %lf freqpair: %lf amppair: %lf\n", i * SAMPLE_RATE / (double) WINDOW_SIZE, frequencyVisualizeBuffer[i], (windowSize - i) * SAMPLE_RATE / (double) WINDOW_SIZE, frequencyVisualizeBuffer[windowSize - i]);

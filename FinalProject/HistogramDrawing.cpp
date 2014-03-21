@@ -9,7 +9,7 @@ int main(int argc, char *argv[]) {
    double maxAmplitude = 0.0;
 //   double runningAverageMaxAmplitude = 0.0;
 //   double decayFactor = 0.95;
-   char maxAmplitudeBuffer[30];
+   char maxAmplitudeBuffer[CHARACTER_BUFFER_SIZE];
 
    if (argc != 2) {
       fprintf(stderr, "usage: %s fileName.wav\n", argv[0]);
@@ -47,7 +47,7 @@ int main(int argc, char *argv[]) {
          window.draw(makeBar(i, maxAmplitude > 1.0 ? frequencyAmplitudes[i] / maxAmplitude : frequencyAmplitudes[i] * maxAmplitude));
       }
 
-      sprintf(maxAmplitudeBuffer, "Max\nFrequency: %10.3lf\nAmplitude: %10.3lf", maxAmplitudeIndex * SAMPLE_RATE / (double) WINDOW_SIZE, maxAmplitude);
+      sprintf(maxAmplitudeBuffer, "Number of Frequencies: %d\tFrequency Spacing: %6.3lf\nBottom Frequency: %6.3lf\tTop Frequency: %6.3lf\nMax Frequency: %6.3lf\tMax Amplitude: %6.3lf", NUMBER_OF_FREQUENCIES, FREQUENCY_SPACING, FREQUENCY_SPACING * 1, FREQUENCY_SPACING * NUMBER_OF_FREQUENCIES, maxAmplitudeIndex * SAMPLE_RATE / (double) WINDOW_SIZE, maxAmplitude);
       sf::Text text(maxAmplitudeBuffer, font);
       text.setCharacterSize(16);
       text.setColor(sf::Color::Black);
@@ -57,7 +57,7 @@ int main(int argc, char *argv[]) {
 
       window.display();
 
-      //sf::sleep(sf::seconds(1));
+      sf::sleep(sf::seconds(1));
    }
 
    delete[] frequencyAmplitudes;
