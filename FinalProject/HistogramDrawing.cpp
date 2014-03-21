@@ -10,6 +10,7 @@ int main(int argc, char *argv[]) {
    double runningAverageMaxAmplitude = 0.0;
    double decayFactor = 0.95;
    char maxAmplitudeBuffer[30];
+//   sf::VertexArray *bars = new sf::VertexArray[WINDOW_SIZE];
 
    if (argc != 2) {
       fprintf(stderr, "usage: %s fileName.wav\n", argv[0]);
@@ -17,6 +18,11 @@ int main(int argc, char *argv[]) {
    }
 
    initFourierTransform(argv[1]);
+
+/*   for (int i = 0; i < WINDOW_SIZE; i++) {
+      bars[i].setPrimitiveType(sf::Quads);
+      bars[i].resize(4);
+   }*/
 
    sf::Font font;
    font.loadFromFile("Arial.ttf");
@@ -44,6 +50,8 @@ int main(int argc, char *argv[]) {
       }
 
       for (int i = 0; i < WINDOW_SIZE; i++) {
+//         makeBar(i, maxAmplitude > 1.0 ? frequencyAmplitudes[i] / maxAmplitude : frequencyAmplitudes[i] * maxAmplitude, &bars[i]);
+//         window.draw(bars[i]);
          window.draw(makeBar(i, maxAmplitude > 1.0 ? frequencyAmplitudes[i] / maxAmplitude : frequencyAmplitudes[i] * maxAmplitude));
       }
 
@@ -61,6 +69,7 @@ int main(int argc, char *argv[]) {
    }
 
    delete[] frequencyAmplitudes;
+//   delete[] bars;
 }
 
 void getFrequencyAmplitudes(double *frequencyAmplitudes, int frequencyAmplitudesSize) {
@@ -107,3 +116,19 @@ sf::VertexArray makeBar(int frequencyIndex, double normalizedAmplitude) {
 
    return quad;
 }
+/*
+void makeBar(int frequencyIndex, double normalizedAmplitude, sf::VertexArray *quad) {
+   int left_x = LEFT_MOST_FREQUENCY_BAR + frequencyIndex * FREQUENCY_BAR_WIDTH;
+   int right_x = left_x + FREQUENCY_BAR_WIDTH; 
+   int bottom_y = BOTTOM_OF_FREQUENCY_BARS;
+   int top_y = TOP_OF_FREQUENCY_BARS + (1.0 - normalizedAmplitude) * (bottom_y - TOP_OF_FREQUENCY_BARS);
+
+   (*quad)[0].position = sf::Vector2f(left_x, top_y);
+   (*quad)[0].color = sf::Color::Red;
+   (*quad)[1].position = sf::Vector2f(right_x, top_y);
+   (*quad)[1].color = sf::Color::Blue;
+   (*quad)[2].position = sf::Vector2f(right_x, bottom_y);
+   (*quad)[2].color = sf::Color::Green;
+   (*quad)[3].position = sf::Vector2f(left_x, bottom_y);
+   (*quad)[3].color = sf::Color::Black;
+}*/

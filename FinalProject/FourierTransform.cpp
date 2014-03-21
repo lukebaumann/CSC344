@@ -75,24 +75,29 @@ double *doNextFrameOfFourierTransform() {
       }
 
    case THIRD_THIRD:
-      if (bufferOffset <= 2 * THIRD_BUFFER_SIZE) {
-         FFTVisualize(buffer + bufferOffset, WINDOW_SIZE, frequencyVisualizeBuffer);
-         bufferOffset += WINDOW_DELTA;
-         state = THIRD_THIRD;
+      if (bufferOffset <= 2 * THIRD_BUFFER_SIZE + bufferRead - WINDOW_SIZE) {
+         if (bufferOffset <= 2 * THIRD_BUFFER_SIZE) {
+            FFTVisualize(buffer + bufferOffset, WINDOW_SIZE, frequencyVisualizeBuffer);
+            bufferOffset += WINDOW_DELTA;
+            state = THIRD_THIRD;
+         }
+         // else do FIRST_THIRD stuff
+         else {
+            bufferOffset -= 2 * THIRD_BUFFER_SIZE;
+            FFTVisualize(buffer + bufferOffset, WINDOW_SIZE, frequencyVisualizeBuffer);
+            bufferOffset += WINDOW_DELTA;
+            state = FIRST_THIRD;
+         }
+
+         ret = frequencyVisualizeBuffer;
+         break;
       }
-      // else do FIRST_THIRD stuff
       else {
-         bufferOffset -= 2 * THIRD_BUFFER_SIZE;
-         FFTVisualize(buffer + bufferOffset, WINDOW_SIZE, frequencyVisualizeBuffer);
-         bufferOffset += WINDOW_DELTA;
-         state = FIRST_THIRD;
-
+         state = CLEAN_UP;
       }
-
-      ret = frequencyVisualizeBuffer;
-      break;
 
    case CLEAN_UP:
+      printf("CLEANING UP\n");
       state = FINISH;
       sf_close(in);
       delete[] buffer;
