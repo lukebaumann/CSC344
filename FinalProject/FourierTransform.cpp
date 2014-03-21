@@ -97,7 +97,7 @@ double *doNextFrameOfFourierTransform() {
       }
 
    case CLEAN_UP:
-      printf("CLEANING UP\n");
+      //printf("CLEANING UP\n");
       state = FINISH;
       sf_close(in);
       delete[] buffer;

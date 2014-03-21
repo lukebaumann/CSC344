@@ -7,10 +7,9 @@ int main(int argc, char *argv[]) {
    double *frequencyAmplitudes = new double[WINDOW_SIZE];
    int maxAmplitudeIndex = 0;
    double maxAmplitude = 0.0;
-   double runningAverageMaxAmplitude = 0.0;
-   double decayFactor = 0.95;
+//   double runningAverageMaxAmplitude = 0.0;
+//   double decayFactor = 0.95;
    char maxAmplitudeBuffer[30];
-//   sf::VertexArray *bars = new sf::VertexArray[WINDOW_SIZE];
 
    if (argc != 2) {
       fprintf(stderr, "usage: %s fileName.wav\n", argv[0]);
@@ -18,11 +17,6 @@ int main(int argc, char *argv[]) {
    }
 
    initFourierTransform(argv[1]);
-
-/*   for (int i = 0; i < WINDOW_SIZE; i++) {
-      bars[i].setPrimitiveType(sf::Quads);
-      bars[i].resize(4);
-   }*/
 
    sf::Font font;
    font.loadFromFile("Arial.ttf");
@@ -40,18 +34,16 @@ int main(int argc, char *argv[]) {
       window.clear(sf::Color::White);
 
       getFrequencyAmplitudes(frequencyAmplitudes, WINDOW_SIZE);
-      maxAmplitudeIndex = getMaxAmplitudeIndex(frequencyAmplitudes, WINDOW_SIZE); 
+      maxAmplitudeIndex = getMaxAmplitudeIndex(frequencyAmplitudes, NUMBER_OF_FREQUENCIES); 
       maxAmplitude = frequencyAmplitudes[maxAmplitudeIndex];
 
-      runningAverageMaxAmplitude = runningAverageMaxAmplitude * decayFactor + maxAmplitude * (1.0 - decayFactor);
+/*      runningAverageMaxAmplitude = runningAverageMaxAmplitude * decayFactor + maxAmplitude * (1.0 - decayFactor);
 
       if (maxAmplitude < runningAverageMaxAmplitude) {
          maxAmplitude = runningAverageMaxAmplitude;
       }
-
-      for (int i = 0; i < WINDOW_SIZE; i++) {
-//         makeBar(i, maxAmplitude > 1.0 ? frequencyAmplitudes[i] / maxAmplitude : frequencyAmplitudes[i] * maxAmplitude, &bars[i]);
-//         window.draw(bars[i]);
+*/
+      for (int i = 1; i < NUMBER_OF_FREQUENCIES; i++) {
          window.draw(makeBar(i, maxAmplitude > 1.0 ? frequencyAmplitudes[i] / maxAmplitude : frequencyAmplitudes[i] * maxAmplitude));
       }
 
@@ -69,7 +61,6 @@ int main(int argc, char *argv[]) {
    }
 
    delete[] frequencyAmplitudes;
-//   delete[] bars;
 }
 
 void getFrequencyAmplitudes(double *frequencyAmplitudes, int frequencyAmplitudesSize) {
@@ -87,7 +78,7 @@ void getFrequencyAmplitudes(double *frequencyAmplitudes, int frequencyAmplitudes
 int getMaxAmplitudeIndex(double *frequencyAmplitudes, int frequencyAmplitudesSize) {
    double maxAmplitude = 0.0;
    int maxAmplitudeIndex = 0;
-   for (int i = 0; i < frequencyAmplitudesSize; i++) {
+   for (int i = 1; i < frequencyAmplitudesSize; i++) {
       if (frequencyAmplitudes[i] > maxAmplitude) {
          maxAmplitude = frequencyAmplitudes[i];
          maxAmplitudeIndex = i;
@@ -116,19 +107,3 @@ sf::VertexArray makeBar(int frequencyIndex, double normalizedAmplitude) {
 
    return quad;
 }
-/*
-void makeBar(int frequencyIndex, double normalizedAmplitude, sf::VertexArray *quad) {
-   int left_x = LEFT_MOST_FREQUENCY_BAR + frequencyIndex * FREQUENCY_BAR_WIDTH;
-   int right_x = left_x + FREQUENCY_BAR_WIDTH; 
-   int bottom_y = BOTTOM_OF_FREQUENCY_BARS;
-   int top_y = TOP_OF_FREQUENCY_BARS + (1.0 - normalizedAmplitude) * (bottom_y - TOP_OF_FREQUENCY_BARS);
-
-   (*quad)[0].position = sf::Vector2f(left_x, top_y);
-   (*quad)[0].color = sf::Color::Red;
-   (*quad)[1].position = sf::Vector2f(right_x, top_y);
-   (*quad)[1].color = sf::Color::Blue;
-   (*quad)[2].position = sf::Vector2f(right_x, bottom_y);
-   (*quad)[2].color = sf::Color::Green;
-   (*quad)[3].position = sf::Vector2f(left_x, bottom_y);
-   (*quad)[3].color = sf::Color::Black;
-}*/
